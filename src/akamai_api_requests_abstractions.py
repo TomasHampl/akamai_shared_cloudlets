@@ -1,5 +1,9 @@
 # library functions
-from akamaiRequestWrapper import *
+from src.akamai_http_requests_wrapper import AkamaiRequestWrapper
+
+
+def get_request_wrapper(edgerc_location: str = '~/.edgerc'):
+    return AkamaiRequestWrapper(edgerc_location)
 
 
 def list_shared_policies(edgerc_location: str = '~/.edgerc'):
@@ -9,8 +13,9 @@ def list_shared_policies(edgerc_location: str = '~/.edgerc'):
 
     If the edgerc location is not provided, it defaults to ~/.edgerc
     """
+    request_wrapper = get_request_wrapper(edgerc_location)
     api_path = "/cloudlets/v3/policies"
-    response = send_get_request(api_path, {}, edgerc_location)
+    response = request_wrapper.send_get_request(api_path, {})
     return response.json()
 
 
@@ -52,8 +57,9 @@ def get_policy_by_id(policy_id: str, edgerc_location='~/.edgerc') -> object:
     @param edgerc_location: is a location where we can access the 'edgerc' file, containing Akamai credentials
     @return: json representing the Akamai response
     """
+    request_wrapper = get_request_wrapper(edgerc_location)
     api_path = f"/cloudlets/v3/policies/{policy_id}"
-    response = send_get_request(api_path, {}, edgerc_location)
+    response = request_wrapper.send_get_request(api_path, {})
     return response.json()
 
 
@@ -61,12 +67,13 @@ def list_policy_versions(policy_id: str, page_number: str, page_size: str, edger
     """
     Fetches the policy versions (including their metadata, but not their contents)
     """
+    request_wrapper = get_request_wrapper(edgerc_location)
     api_path = f"/cloudlets/v3/policies/{policy_id}/versions"
     query_params = {
         "page": page_number,
         "size": page_size
     }
-    response = send_get_request(api_path, query_params, edgerc_location)
+    response = request_wrapper.send_get_request(api_path, query_params)
     return response.json()
 
 
@@ -91,8 +98,9 @@ def list_cloudlets(edgerc_location: str = '~/.edgerc'):
     """
     Returns all available cloudlet types
     """
+    request_wrapper = get_request_wrapper(edgerc_location)
     api_path = "/cloudlets/v3/cloudlet-info"
-    response = send_get_request(api_path, {}, edgerc_location)
+    response = request_wrapper.send_get_request(api_path, {})
     return response.json()
 
 
@@ -103,8 +111,9 @@ def list_groups(edgerc_location: str = '~/.edgerc'):
     @param edgerc_location: is a location of the 'edgerc' file that contains the Akamai credentials
     @return: json representing the Akamai response
     """
+    request_wrapper = get_request_wrapper(edgerc_location)
     api_path = "/cloudlets/api/v2/group-info"
-    response = send_get_request(api_path, {}, edgerc_location)
+    response = request_wrapper.send_get_request(api_path, {})
     return response.json()
 
 
@@ -155,8 +164,9 @@ def create_shared_policy(group_id: str,
         "groupId": group_id,
         "name": policy_name
     }
+    request_wrapper = get_request_wrapper(edgerc_location)
     api_path = "/cloudlets/v3/policies"
-    response = send_post_request(api_path, post_body, edgerc_location)
+    response = request_wrapper.send_post_request(api_path, post_body)
     response_json = response.json()
     if response.status_code == 201:
         return {
@@ -176,8 +186,9 @@ def delete_shared_policy(policy_id: str, edgerc_location: str = '~/.edgerc'):
     @param edgerc_location: is a location of the 'edgerc' file that contains the Akamai credentials
     @return: a string informing about the operation result
     """
+    request_wrapper = get_request_wrapper(edgerc_location)
     api_path = f"/cloudlets/v3/policies/{policy_id}"
-    response = send_delete_request(api_path, edgerc_location)
+    response = request_wrapper.send_delete_request(api_path)
     if response.status_code == 403:
         return f"No permissions to delete policy with id '{policy_id}'"
     if response.status_code == 404:
@@ -206,12 +217,13 @@ def get_active_properties(policy_id: str,
     @return: json response representing the akamai response or None if we encountered an error (such as
     provided policy_id does not exist etc...)
     """
+    request_wrapper = get_request_wrapper(edgerc_location)
     api_path = f"/cloudlets/v3/policies/{policy_id}/properties"
     query_params = {
         "page": page_number,
         "size": page_size
     }
-    response = send_get_request(api_path, query_params, edgerc_location)
+    response = request_wrapper.send_get_request(api_path, query_params)
     if response.status_code == 200:
         return response.json()
     return None
@@ -229,8 +241,9 @@ def get_policy_version(policy_id: str,
     @return: json response representing the information you're looking for or None in case
     nothing was found (for example policy_id was incorrect or version does not exist)
     """
+    request_wrapper = get_request_wrapper(edgerc_location)
     api_path = f"/cloudlets/v3/policies/{policy_id}/versions/{policy_version}"
-    response = send_get_request(api_path, {}, edgerc_location)
+    response = request_wrapper.send_get_request(api_path, {})
     if response.status_code == 200:
         return response.json()
     return None
@@ -242,7 +255,8 @@ def clone_non_shared_policy(policy_id: str,
                             group_id: str,
                             edgerc_location: str = '~/.edgerc'):
     """
-    Clones the staging, production, and last modified versions of a non-shared (API v2) or shared policy into a new shared policy.
+    Clones the staging, production, and last modified versions of a non-shared (API v2) or shared policy
+    into a new shared policy.
     @param group_id: is the id of the group where you wish to store the new policy
     @param policy_id: is the unique identifier of non-shared (api v2) policy
     @param additional_version: additional version numbers you wish to 'copy' from the old API v2 policy
@@ -251,6 +265,7 @@ def clone_non_shared_policy(policy_id: str,
     @param edgerc_location: is a location of the 'edgerc' file that contains the Akamai credentials
     @return: policy_id of the new (API v3) policy or None in case something went wrong
     """
+    request_wrapper = get_request_wrapper(edgerc_location)
     api_path = f"/cloudlets/v3/policies/{policy_id}/clone"
     post_body = {
         "additionalVersions": additional_version,
@@ -258,23 +273,8 @@ def clone_non_shared_policy(policy_id: str,
         "newName": shared_policy_name
     }
 
-    response = send_post_request(api_path,post_body,edgerc_location)
+    response = request_wrapper.send_post_request(api_path, post_body)
     if response.status_code == 200:
         json_response = response.json()
         return json_response["id"]
     return None
-
-# print(get_active_properties("196953"))
-# print(get_shared_policy_by_name("discover_test_please_delete"))
-
-# print(createSharedPolicy("189504", "discover_test_please_delete", "Testing policy for discover. If you find this,
-# please delete", "ER")) print(getSharedPolicyByName("logistics_prod_th_shared"))
-
-# print(getPolicyById("196953"))
-# print(getLatestPolicy("196953"))
-# print(listCloudlets())
-# print(getGroupIds())
-print(json.dumps(list_policy_versions("196953", "0", "200"), indent=2))
-# from jsonpath_ng import jsonpath, parse
-
-# print(getGroupIdByName("DHL Information Services (Europe), s.r.o.-M-1NNE48N"))
