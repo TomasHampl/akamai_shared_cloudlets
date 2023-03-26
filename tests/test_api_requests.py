@@ -1,23 +1,39 @@
-from src import akamai_api_requests_abstractions as ak
-from src import akamai_http_requests_wrapper as wrapper
+import os
 import unittest
-import warnings
+
+from src import akamai_http_requests_wrapper as wrapper
 
 
-class ApiRequestsTests(unittest.TestCase):
+class TestAkamaiRequestWrapper(unittest.TestCase):
 
-    def test_get_policy(self):
-        warnings.filterwarnings(action="ignore", message="unclosed", category=ResourceWarning)
-        edgerc_location = '~/.edgerc'
-        with wrapper.AkamaiRequestWrapper(edgerc_location) as wr:
-            redirect_policy = ak.get_shared_policy_by_name("test", edgerc_location)
-        self.assertTrue(redirect_policy is None)
+    def test_read_edgerc_file(self):
+        edgerc_location = os.getcwd() + "/" + "sample_edgerc"
+        request_wrapper = wrapper.AkamaiRequestWrapper(edgerc_location)
+        edgerc = request_wrapper.get_edgerc_file()
+        self.assertTrue(edgerc[1] == "default")
 
-    def test_get_policy_approximate_name(self):
-        edgerc_location = '~/.edgerc'
-        with wrapper.AkamaiRequestWrapper(edgerc_location) as wr:
-            redirect_policy = ak.get_shared_policies_by_approximate_name("test", edgerc_location)
-        self.assertTrue(len(redirect_policy) == 0)
+        edgerc_signer = edgerc[0]
+        has_cloudlets = edgerc_signer.has_section("cloudlets")
+        self.assertFalse(has_cloudlets)
+
+    def test_get_base_url(self):
+        edgerc_location = os.getcwd() + "/" + "sample_edgerc"
+        request_wrapper = wrapper.AkamaiRequestWrapper(edgerc_location)
+        base_url = request_wrapper.get_base_url()
+        self.assertTrue(base_url, "https://akab-wmjabebv6bfjx6zw-uakssaeiqimho6qi.aaaaa.dddddd.net")
+
+    def test_get_base_url_cloudlet(self):
+        edgerc_location = os.getcwd() + "/" + "sample_edgerc_cloudlet"
+        request_wrapper = wrapper.AkamaiRequestWrapper(edgerc_location)
+        base_url = request_wrapper.get_base_url()
+        self.assertTrue(base_url, "dummy.cloudlets.base.url")
+
+    def test_sign_request(self):
+        edgerc_location = os.getcwd() + "/" + "sample_edgerc"
+        request_wrapper = wrapper.AkamaiRequestWrapper(edgerc_location)
+        signed_session = request_wrapper.sign_request()
+        access_token = signed_session.auth.ah.access_token
+        self.assertTrue(access_token, "akab-dummy-dummy-dummy-dummy")
 
 
 if __name__ == '__main__':

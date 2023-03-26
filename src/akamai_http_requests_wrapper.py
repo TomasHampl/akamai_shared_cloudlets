@@ -4,6 +4,8 @@ from urllib.parse import urljoin
 import requests
 from akamai.edgegrid import EdgeGridAuth, EdgeRc
 from requests import Request
+from src.akamai_project_constants import JSON_CONTENT_TYPE
+from src.akamai_project_constants import DEFAULT_EDGERC_LOCATION
 
 
 class AkamaiRequestWrapper(object):
@@ -11,14 +13,17 @@ class AkamaiRequestWrapper(object):
     Serves as a wrapper for the actual http requests (including the authentication) targeting the Akamai APIs
     """
 
-    edgerc_location = '~/.edgerc'
+    edgerc_location = DEFAULT_EDGERC_LOCATION
 
     def __init__(self, edgerc_location: str):
         if edgerc_location is None:
-            self.edgerc_location = '~/.edgerc'
+            self.edgerc_location = DEFAULT_EDGERC_LOCATION
         else:
             self.edgerc_location = edgerc_location
         self.session = requests.session()
+
+    def get_info(self):
+        print("This is a AkamaiRequestWrapper class")
 
     def __enter__(self):
         return self
@@ -60,7 +65,7 @@ class AkamaiRequestWrapper(object):
         """
         try:
             return 'https://%s' % self.read_edge_grid_file("cloudlets", "host")
-        except:
+        except BaseException:
             print("Cannot find section 'cloudlets' in EdgeRc file, falling back to 'default'")
             return 'https://%s' % self.read_edge_grid_file("default", "host")
 
@@ -81,7 +86,7 @@ class AkamaiRequestWrapper(object):
             section_to_get = 'default'
         return edgerc.get(section_to_get, key)
 
-    def get_edgerc_file(self, edgerc_location: str = '~/.edgerc'):
+    def get_edgerc_file(self, edgerc_location: str = DEFAULT_EDGERC_LOCATION):
         """
         Simple method that provides the EdgeRc object plus the section that is available in the file - it prefers the
         'cloudlets' section to 'default' or any other. However, if no 'cloudlets' section exists, then it provides
@@ -89,7 +94,7 @@ class AkamaiRequestWrapper(object):
         @return: a tuple of an instance of EdgeRc object and section
         """
         if edgerc_location is None:
-            edgerc_location = '~/.edgerc'
+            self.edgerc_location = DEFAULT_EDGERC_LOCATION
 
         edge_rc = EdgeRc(edgerc_location)
 
@@ -101,8 +106,14 @@ class AkamaiRequestWrapper(object):
 
     def send_get_request(self, path: str, query_params: dict):
         """
-        Serves as an abstraction of most of the 'get' http requests
+        Serves as GET request abstraction
+        @param path: is the path where we want to send the request. It is assumed
+        the hostname (aka base_url) would come from the EdgeGrid file
+        @param query_params: a dictionary of additional query parameters, may be empty dictionary
+        @return: raw response provided by Akamai, if you want json, do it yourself ;)
         """
+        if query_params is None:
+            query_params = {}
         base_url = self.get_base_url()
         session = self.sign_request()
         session.headers.update(query_params)
@@ -110,11 +121,16 @@ class AkamaiRequestWrapper(object):
 
     def send_post_request(self, path: str, post_body: dict):
         """
-        Serves as an abstraction of most of the 'post' http requests
+        Serves as an abstraction of most of the 'post' http requests. Sets the 'accept' & 'content-type' headers to
+        'application/json'
+        @param path: is the path where we want to send the request. It is assumed the hostname (aka base_url) would come
+        from the EdgeGrid file
+        @param post_body: is a dictionary that represents the post body
+        @return: raw response from Akamai, if you want json, do it yourself ;)
         """
         request_headers = {
-            "accept": "application/json",
-            "content-type": "application/json"
+            "accept": JSON_CONTENT_TYPE,
+            "content-type": JSON_CONTENT_TYPE
         }
         base_url = self.get_base_url()
         destination = urljoin(base_url, path)
@@ -128,6 +144,9 @@ class AkamaiRequestWrapper(object):
         """
         Serves as an abstraction of 'delete' request. Contains no logic to assess the correctness of the data provided
         or response returned.
+        @param path: is the path where we want to send the request. It is assumed the hostname (aka base_url) would come
+        from the EdgeGrid file
+        @return: raw response from Akamai, if you want json (or other processing), you need to do it yourself
         """
         request_headers = {
             "accept": "application/problem+json"
@@ -139,7 +158,27 @@ class AkamaiRequestWrapper(object):
         prepared_request = session.prepare_request(request)
         return session.send(prepared_request)
 
+    def send_put_request(self, path: str, body: dict):
+        """
+        Serves as an abstraction of PUT request. Contains no logic to assess the correctness of the data provided or
+        response returned
+        @param path: is the path where we want to send the request, It is assumed the hostname (aka base_url) would come
+        from the EdgeGrid file
+        @param body: a dict of put body, may be empty (if there's nothing you want to pass)
+        @return: raw response from Akamai, if you want json (or other processing), you need to do it yourself
+        """
+        request_headers = {
+            "accept": JSON_CONTENT_TYPE,
+            "content-type": JSON_CONTENT_TYPE
+        }
+        base_url = self.get_base_url()
+        destination = urljoin(base_url, path)
+        request = Request('PUT', destination, data=json.dumps(body), headers=request_headers)
+        session = self.sign_request()
+        prepared_request = session.prepare_request(request)
+        return session.send(prepared_request)
+
 
 if __name__ == '__main__':
-    with AkamaiRequestWrapper() as wrapper:
+    with AkamaiRequestWrapper(DEFAULT_EDGERC_LOCATION) as wrapper:
         print(wrapper.get_info())
