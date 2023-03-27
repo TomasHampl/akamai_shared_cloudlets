@@ -4,8 +4,8 @@ from urllib.parse import urljoin
 import requests
 from akamai.edgegrid import EdgeGridAuth, EdgeRc
 from requests import Request
-from src.akamai_project_constants import JSON_CONTENT_TYPE
-from src.akamai_project_constants import DEFAULT_EDGERC_LOCATION
+from ..src.akamai_project_constants import JSON_CONTENT_TYPE
+from ..src.akamai_project_constants import DEFAULT_EDGERC_LOCATION
 
 
 class AkamaiRequestWrapper(object):
