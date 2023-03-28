@@ -4,8 +4,8 @@ from urllib.parse import urljoin
 import requests
 from akamai.edgegrid import EdgeGridAuth, EdgeRc
 from requests import Request
-from ..src.akamai_project_constants import JSON_CONTENT_TYPE
-from ..src.akamai_project_constants import DEFAULT_EDGERC_LOCATION
+from src.akamai_project_constants import JSON_CONTENT_TYPE
+from src.akamai_project_constants import DEFAULT_EDGERC_LOCATION
 
 
 class AkamaiRequestWrapper(object):
@@ -86,7 +86,7 @@ class AkamaiRequestWrapper(object):
             section_to_get = 'default'
         return edgerc.get(section_to_get, key)
 
-    def get_edgerc_file(self, edgerc_location: str = DEFAULT_EDGERC_LOCATION):
+    def get_edgerc_file(self, edgerc_location: str):
         """
         Simple method that provides the EdgeRc object plus the section that is available in the file - it prefers the
         'cloudlets' section to 'default' or any other. However, if no 'cloudlets' section exists, then it provides

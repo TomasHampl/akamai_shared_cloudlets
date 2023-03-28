@@ -20,3 +20,9 @@ classifiers = [
 [project.urls]
 "Homepage" = "https://github.com/TomasHampl/akamai_shared_cloudlets.git"
 "Bug Tracker" = "https://github.com/TomasHampl/akamai_shared_cloudlets/issues"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+testpaths = [
+    "tests",
+]
