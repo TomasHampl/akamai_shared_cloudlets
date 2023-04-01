@@ -1,6 +1,6 @@
 # library functions
-from akamai_http_requests_wrapper import AkamaiRequestWrapper
-from akamai_project_constants import DEFAULT_EDGERC_LOCATION
+from akamai_shared_cloudlets.src.akamai_http_requests_wrapper import AkamaiRequestWrapper
+from akamai_shared_cloudlets.src.akamai_project_constants import DEFAULT_EDGERC_LOCATION
 
 
 class AkamaiApiRequestsAbstractions(object):
@@ -19,51 +19,64 @@ class AkamaiApiRequestsAbstractions(object):
     def list_shared_policies(self):
         """
         listSharedPolicies is a method that abstracts the Akamai API call to get all shared policies available
-         to the provided credentials. What policies are available to the credentials depends on the 'edgerc' location.
+         to the provided credentials. What policies are available to the credentials depends on the permissions
+         assigned to the API user that created the credentials.
 
-        If the edgerc location is not provided, it defaults to ~/.edgerc
+        There are no parameters to be provided.
+        @return: json response from the API call (if http status code was 200) or None in case it was
+        anything else.
         """
         api_path = "/cloudlets/v3/policies"
         response = self.request_wrapper.send_get_request(api_path, {})
-        return response.json()
+        if response.status_code == 200:
+            return response.json()
+        return None
 
     def get_shared_policy_by_name(self, policy_name: str) -> object:
         """
         Returns Shared cloudlet policyId based on the policy name. If not found, returns None...
         @param policy_name: is the name of the policy we'll be looking for in all policies
-        @return: string representing the policyId or None (in case nothing was found)
+        @return: string representing the policyId or None (in case nothing was found or the API request to get the
+        policies failed)
         """
         response_json = self.list_shared_policies()
-        policies = response_json["content"]
-        for policy_object in policies:
-            if policy_object['name'] == policy_name:
-                return policy_object['id']
+        if response_json is not None:
+            policies = response_json["content"]
+            for policy_object in policies:
+                if policy_object['name'] == policy_name:
+                    return policy_object['id']
         return None
 
     def get_shared_policies_by_approximate_name(self, policy_name: str):
         """
-        Returns a dictionary of policy names (as key) and their IDs (as value) where policy name contains the provided
-        search string. If nothing is found, returns an empty dictionary
+        Provides a dictionary of policy name (as key) and their IDs (as value) where policy name contains the provided
+        search string. If request failed (http status code != 200), or nothing was found, returns empty dictionary.
+        @param policy_name: is a string we want to find in the shared policies (needle)
+        @return: dictionary of policy names & ids
         """
+
         result_list = {}
         response_json = self.list_shared_policies()
-        all_policies = response_json["content"]
-        for policy_object in all_policies:
-            if policy_name.lower() in policy_object["name"]:
-                policy = policy_object["name"]
-                policy_id = policy_object["id"]
-                result_list.update({policy: policy_id})
+        if response_json is not None:
+            all_policies = response_json["content"]
+            for policy_object in all_policies:
+                if policy_name.lower() in policy_object["name"]:
+                    policy = policy_object["name"]
+                    policy_id = policy_object["id"]
+                    result_list.update({policy: policy_id})
         return result_list
 
     def get_policy_by_id(self, policy_id: str) -> object:
         """
         Returns the json string representing the shared policy identified by the provided 'policyId'
         @param policy_id: is the policy_id we're looking for
-        @return: json representing the Akamai response
+        @return: json representing the Akamai response or None if nothing was found (or request to API failed)
         """
         api_path = f"/cloudlets/v3/policies/{policy_id}"
         response = self.request_wrapper.send_get_request(api_path, {})
-        return response.json()
+        if response.status_code == 200:
+            return response.json()
+        return None
 
     def list_policy_versions(self, policy_id: str, page_number: str, page_size: str):
         """

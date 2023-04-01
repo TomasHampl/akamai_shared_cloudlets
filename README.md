@@ -8,12 +8,14 @@ For whatever reason, Akamai have not put much effort in implementing the shared 
 Once finished in a 'functioning' state, it should be available via the standard pypi.
 
 ## Using it
-There are two main file in the 'package':
-* akamai_api_requests_abstractions.py
-* akamai_http_requests_wrapper.py
+### Prerequisites
+You need Akamai credentials. To get them, see the https://techdocs.akamai.com/developer/docs/set-up-authentication-credentials documentation. You also need Python 3.8+ (it should work with older versions, but 3.8 is the oldest one that I tested with).
 
-### API requests abstractions
-First file contains a class that contains implementation of (nearly) all requests describes in the official Akamai documentation available at https://techdocs.akamai.com/cloudlets/reference/api. If you're looking for a particular request and you find it missing, Pull Requests are welcome.
-
-### HTTP requests abstractions
-It contains the logic that's capable of sending the signed requests to Akamai . There is a lot of code inside this class 
+### Run
+To start using, simply import & initialize the ```AkamaiRequestWrapper``` class. Something like this should work nicely:
+```
+from akamai_shared_cloudlets.src import akamai_api_requests_abstractions as api
+api_func = api.AkamaiApiRequestsAbstractions('~/.edgerc')
+print(api_func.list_shared_policies())
+```
+Example above does not do very much, but it shows the basic usage. First, you import (other import methods would work as well of course), then you instantiate the ```AkamaiApiRequestsAbstractions``` class using the only defined constructor (you can provide the location of your edgerc file - if you don't it defaults to ```~/.edgerc```). Last step is to use one of this numerous methods to send the request to API.
