@@ -4,8 +4,9 @@ from urllib.parse import urljoin
 import requests
 from akamai.edgegrid import EdgeGridAuth, EdgeRc
 from requests import Request
-from src.akamai_project_constants import JSON_CONTENT_TYPE
-from src.akamai_project_constants import DEFAULT_EDGERC_LOCATION
+
+from akamai_shared_cloudlets.src.akamai_project_constants import DEFAULT_EDGERC_LOCATION
+from akamai_shared_cloudlets.src.akamai_project_constants import JSON_CONTENT_TYPE
 
 
 class AkamaiRequestWrapper(object):
@@ -22,7 +23,8 @@ class AkamaiRequestWrapper(object):
             self.edgerc_location = edgerc_location
         self.session = requests.session()
 
-    def get_info(self):
+    @staticmethod
+    def get_info():
         print("This is a AkamaiRequestWrapper class")
 
     def __enter__(self):

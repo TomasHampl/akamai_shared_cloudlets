@@ -1,7 +1,7 @@
 import os
 import unittest
-
-from src import akamai_http_requests_wrapper as wrapper
+# import akamai_http_requests_wrapper as wrapper
+from akamai_shared_cloudlets.src import akamai_http_requests_wrapper as wrapper
 
 
 class TestAkamaiRequestWrapper(unittest.TestCase):

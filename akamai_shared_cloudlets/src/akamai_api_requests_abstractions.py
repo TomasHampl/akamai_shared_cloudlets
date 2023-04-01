@@ -1,6 +1,6 @@
 # library functions
-from src.akamai_http_requests_wrapper import AkamaiRequestWrapper
-from src.akamai_project_constants import DEFAULT_EDGERC_LOCATION
+from akamai_http_requests_wrapper import AkamaiRequestWrapper
+from akamai_project_constants import DEFAULT_EDGERC_LOCATION
 
 
 class AkamaiApiRequestsAbstractions(object):
