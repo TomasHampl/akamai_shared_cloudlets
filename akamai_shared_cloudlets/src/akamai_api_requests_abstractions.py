@@ -81,6 +81,11 @@ class AkamaiApiRequestsAbstractions(object):
     def list_policy_versions(self, policy_id: str, page_number: str, page_size: str):
         """
         Fetches the policy versions (including their metadata, but not their contents)
+        @param policy_id: is the id we need to identify the policy
+        @param page_number: in case there are more policy versions than page_size param, this can be leveraged
+        to build pagination
+        @param page_size: how many records should be returned in one 'page'
+        @return: json-encoded contents of the response or None, if an error occurred or nothing was found
         """
         api_path = f"/cloudlets/v3/policies/{policy_id}/versions"
         query_params = {
@@ -88,60 +93,83 @@ class AkamaiApiRequestsAbstractions(object):
             "size": page_size
         }
         response = self.request_wrapper.send_get_request(api_path, query_params)
-        return response.json()
+        if response.status_code == 200:
+            return response.json()
+        return None
 
     def get_latest_policy_version(self, policy_id: str):
         """
-        Returns the json string representing the latest version of a redirect policy
+        Returns the latest version number of the policy identified by its ID
+        @param policy_id: is the identifier we need to find the policy
+        @return: version number or None if nothing was found or an error occurred
         """
         latest_policy = self.get_latest_policy(policy_id)
-        return latest_policy["version"]
+        if latest_policy is not None:
+            return latest_policy["version"]
+        return None
 
     def get_latest_policy(self, policy_id: str):
         """
-        Returns the latest policy version - returns only the ID, not the contents itself.
+        Returns the latest policy version (we assume there are less than 1000 versions of the policy,
+        if there are more, this may not be reliable). This relies on current Akamai API behaviour that listing
+        all policies arranges the response in a way that the latest policy is in fact the 'first' (on the top).
+        @param policy_id: is the identifier we need to find the policy
+        @return: the latest policy contents or None if nothing was found or an error has occurred
         """
-        all_policies = self.list_policy_versions(policy_id, "0", "100")
-        all_policies_content = all_policies.get("content", None)
-        return all_policies_content[0]
+        all_policies = self.list_policy_versions(policy_id, "0", "1000")
+        if all_policies is not None:
+            all_policies_content = all_policies.get("content", None)
+            return all_policies_content[0]
+        return None
 
     def list_cloudlets(self):
         """
-        Returns all available cloudlet types that we can access
+        Returns all available cloudlet types that we can access, as json-encoded value
+        @return: all available cloudlet types, or None, if an error has occurred (http status was not 200)
         """
         api_path = "/cloudlets/v3/cloudlet-info"
         response = self.request_wrapper.send_get_request(api_path, {})
-        return response.json()
+        if response.status_code == 200:
+            return response.json()
+        return None
 
     def list_groups(self):
         """
-        Provides all groups with a request targeting the APIv2 to get the list of groups (including their member properties)
-        @return: json representing the Akamai response
+        Provides all groups with a request targeting the APIv2 to get the list of groups (including their member
+        properties)
+        @return: json representing the Akamai response or None, if an error has occurred (http status was not 200)
         """
         api_path = "/cloudlets/api/v2/group-info"
         response = self.request_wrapper.send_get_request(api_path, {})
-        return response.json()
+        if response.status_code == 200:
+            return response.json()
+        return None
 
     def get_group_id(self):
         """
         Returns dict of groupIDs and their associated names
+        @return: dict where groupId is the key and group name the value, or None, if nothing was found or
+        an error has occurred
         """
         all_groups = self.list_groups()
-        groups = {}
-        for element in all_groups:
-            groups.update({element["groupId"]: element["groupName"]})
-        return groups
+        if all_groups is not None:
+            groups = {}
+            for element in all_groups:
+                groups.update({element["groupId"]: element["groupName"]})
+            return groups
+        return None
 
     def get_group_id_by_name(self, group_name: str) -> object:
         """
         Provides the id of the group identified by its name
         @param group_name: is the string we're looking for
-        @return: string representing the group_id or None in case nothing was found
+        @return: string representing the group_id or None in case nothing was found, or an error has occurred
         """
         all_groups = self.list_groups()
-        for element in all_groups:
-            if element["groupName"].lower() == group_name.lower():
-                return element["groupId"]
+        if all_groups is not None:
+            for element in all_groups:
+                if element["groupName"].lower() == group_name.lower():
+                    return element["groupId"]
         return None
 
     def create_shared_policy(self,

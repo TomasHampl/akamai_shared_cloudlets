@@ -1,12 +1,13 @@
 import json
 from urllib.parse import urljoin
+from pathlib import Path
 
 import requests
 from akamai.edgegrid import EdgeGridAuth, EdgeRc
 from requests import Request
 
-from akamai_shared_cloudlets.src.akamai_project_constants import DEFAULT_EDGERC_LOCATION
-from akamai_shared_cloudlets.src.akamai_project_constants import JSON_CONTENT_TYPE
+from akamai_shared_cloudlets.src.akamai_project_constants import DEFAULT_EDGERC_LOCATION, JSON_CONTENT_TYPE
+from akamai_shared_cloudlets.src.exceptions import EdgeRcFileMissing
 
 
 class AkamaiRequestWrapper(object):
@@ -38,7 +39,7 @@ class AkamaiRequestWrapper(object):
 
     def get_edgerc_location(self):
         """
-        Classical 'getter' function for 'edgerc_location' property in the class
+        Classic 'getter' function for 'edgerc_location' property in the class
         @return: location of the 'edgerc_location'
         """
         return self.edgerc_location
@@ -93,18 +94,29 @@ class AkamaiRequestWrapper(object):
         Simple method that provides the EdgeRc object plus the section that is available in the file - it prefers the
         'cloudlets' section to 'default' or any other. However, if no 'cloudlets' section exists, then it provides
         the 'default'
-        @return: a tuple of an instance of EdgeRc object and section
+        @return: a tuple of an instance of EdgeRc object and section or None if the credentials file does not exist
+        in the initialized location
         """
         if edgerc_location is None:
             self.edgerc_location = DEFAULT_EDGERC_LOCATION
 
-        edge_rc = EdgeRc(edgerc_location)
+        if self.does_edgegrid_file_exist() is True:
+            edge_rc = EdgeRc(edgerc_location)
 
-        if edge_rc.has_section('cloudlets'):
-            section = 'cloudlets'
-        else:
-            section = 'default'
-        return edge_rc, section
+            if edge_rc.has_section('cloudlets'):
+                section = 'cloudlets'
+            else:
+                section = 'default'
+            return edge_rc, section
+
+        raise EdgeRcFileMissing(f"Could not find the edgerc file in {self.edgerc_location}")
+
+    def does_edgegrid_file_exist(self):
+        edge_file_location = self.get_edgerc_location()
+        path = Path(edge_file_location)
+        if path.is_file():
+            return True
+        return False
 
     def send_get_request(self, path: str, query_params: dict):
         """
