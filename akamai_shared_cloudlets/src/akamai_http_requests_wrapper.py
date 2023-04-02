@@ -1,4 +1,5 @@
 import json
+from configparser import NoSectionError
 from urllib.parse import urljoin
 from pathlib import Path
 
@@ -68,7 +69,7 @@ class AkamaiRequestWrapper(object):
         """
         try:
             return 'https://%s' % self.read_edge_grid_file("cloudlets", "host")
-        except BaseException:
+        except NoSectionError:
             print("Cannot find section 'cloudlets' in EdgeRc file, falling back to 'default'")
             return 'https://%s' % self.read_edge_grid_file("default", "host")
 
@@ -82,12 +83,15 @@ class AkamaiRequestWrapper(object):
         @return: the value associated with the provided host within the section, or, if missing, then that section
         from the 'default' section
         """
-        edgerc = EdgeRc(self.edgerc_location)
-        if edgerc.has_section(section):
-            section_to_get = section
-        else:
-            section_to_get = 'default'
-        return edgerc.get(section_to_get, key)
+        path = Path(self.edgerc_location)
+        if path.is_file():
+            edgerc = EdgeRc(self.edgerc_location)
+            if edgerc.has_section(section):
+                section_to_get = section
+            else:
+                section_to_get = 'default'
+            return edgerc.get(section_to_get, key)
+        raise EdgeRcFileMissing(f"File {self.edgerc_location} could not be found. This is NOT ok.")
 
     def get_edgerc_file(self, edgerc_location: str):
         """

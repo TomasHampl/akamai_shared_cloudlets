@@ -1,7 +1,7 @@
 import os
 import unittest
+
 from akamai_shared_cloudlets.src import akamai_http_requests_wrapper as wrapper
-from akamai_shared_cloudlets.src import akamai_api_requests_abstractions as api
 
 
 class TestAkamaiRequestWrapper(unittest.TestCase):
@@ -35,10 +35,6 @@ class TestAkamaiRequestWrapper(unittest.TestCase):
         signed_session = request_wrapper.sign_request()
         access_token = signed_session.auth.ah.access_token
         self.assertTrue(access_token, "akab-dummy-dummy-dummy-dummy")
-
-    def test_again(self):
-        api_func = api.AkamaiApiRequestsAbstractions('~/.edgerc')
-        print(api_func.list_shared_policies())
 
     @staticmethod
     def get_working_dir():
