@@ -1,6 +1,9 @@
 # library functions
+import akamai_enums
 from akamai_shared_cloudlets.src.akamai_http_requests_wrapper import AkamaiRequestWrapper
 from akamai_shared_cloudlets.src.akamai_project_constants import DEFAULT_EDGERC_LOCATION
+from akamai_shared_cloudlets.src.akamai_enums import AkamaiNetworks, ActivationOperations
+from akamai_shared_cloudlets.src.exceptions import IncorrectInputParameter
 
 
 class AkamaiApiRequestsAbstractions(object):
@@ -295,3 +298,57 @@ class AkamaiApiRequestsAbstractions(object):
             json_response = response.json()
             return json_response["id"]
         return None
+
+    def activate_policy(self, policy_id: str,
+                        network: str,
+                        operation: str,
+                        policy_version: str) -> bool:
+        """
+        Activates or deactivates the selected Cloudlet policy version on the staging or production networks
+        @param policy_version: is the policy version that is to be (de)activated
+        @param operation: tells the method what we want it to do (activate or deactivate); permitted values are either
+        'ACTIVATION' or 'DEACTIVATION'
+        @param network: tells the method what Akamai network we want to perform such operation; permitted values are
+        either 'PRODUCTION' or 'STAGING'
+        @param policy_id: is the policy identifier - that tells us which policy is to be activated
+        @return: bool indicating whether the (de)activation request was accepted by Akamai or not (true if yes,
+        false if no)
+        """
+        if self.is_akamai_network(network) is not True:
+            raise IncorrectInputParameter(f"Network parameter (akamai_network) must be either 'PRODUCTION' or 'STAGE'."
+                                          f"Instead, it was {network}")
+
+        if self.is_correct_operation(operation) is not True:
+            raise IncorrectInputParameter(f"Operation parameter (operation) must be either 'ACTIVATION' or "
+                                          f"'DEACTIVATION'. Instead, it was {operation}")
+
+        api_path = f"/cloudlets/v3/policies/{policy_id}/activations"
+        post_body = {
+            "network": network,
+            "operation": operation,
+            "policyVersion": policy_version
+        }
+
+        response = self.request_wrapper.send_post_request(api_path, post_body)
+        if response.status_code == 202:
+            json_response = response.json()
+            result = json_response["status"]
+            if result == "SUCCESS":
+                return True
+        return False
+
+    @staticmethod
+    def is_akamai_network(obj):
+        try:
+            AkamaiNetworks(obj)
+        except ValueError:
+            return False
+        return True
+
+    @staticmethod
+    def is_correct_operation(obj):
+        try:
+            ActivationOperations(obj)
+        except ValueError:
+            return False
+        return True
