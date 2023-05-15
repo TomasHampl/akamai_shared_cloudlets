@@ -1,0 +1,5 @@
+[default]
+client_secret=xxxxxxxxxxxxxxxxxxxxxx
+host=dummy.luna.akamaiapis.net
+access_token=akab-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+client_token=akab-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb

@@ -1,8 +1,7 @@
 # library functions
-import akamai_enums
+from akamai_shared_cloudlets.src.akamai_enums import AkamaiNetworks, ActivationOperations
 from akamai_shared_cloudlets.src.akamai_http_requests_wrapper import AkamaiRequestWrapper
 from akamai_shared_cloudlets.src.akamai_project_constants import DEFAULT_EDGERC_LOCATION
-from akamai_shared_cloudlets.src.akamai_enums import AkamaiNetworks, ActivationOperations
 from akamai_shared_cloudlets.src.exceptions import IncorrectInputParameter
 
 
@@ -55,7 +54,7 @@ class AkamaiApiRequestsAbstractions(object):
         Provides a dictionary of policy name (as key) and their IDs (as value) where policy name contains the provided
         search string. If request failed (http status code != 200), or nothing was found, returns empty dictionary.
         @param policy_name: is a string we want to find in the shared policies (needle)
-        @return: dictionary of policy names & ids
+        @return: dictionary of policy names & ids, if nothing was found, returns empty dict
         """
 
         result_list = {}
@@ -81,7 +80,7 @@ class AkamaiApiRequestsAbstractions(object):
             return response.json()
         return None
 
-    def list_policy_versions(self, policy_id: str, page_number: str, page_size: str):
+    def list_policy_versions(self, policy_id: str, page_number: int, page_size: int):
         """
         Fetches the policy versions (including their metadata, but not their contents)
         @param policy_id: is the id we need to identify the policy
@@ -92,8 +91,8 @@ class AkamaiApiRequestsAbstractions(object):
         """
         api_path = f"/cloudlets/v3/policies/{policy_id}/versions"
         query_params = {
-            "page": page_number,
-            "size": page_size
+            "page": str(page_number),
+            "size": str(page_size)
         }
         response = self.request_wrapper.send_get_request(api_path, query_params)
         if response.status_code == 200:
@@ -119,7 +118,7 @@ class AkamaiApiRequestsAbstractions(object):
         @param policy_id: is the identifier we need to find the policy
         @return: the latest policy contents or None if nothing was found or an error has occurred
         """
-        all_policies = self.list_policy_versions(policy_id, "0", "1000")
+        all_policies = self.list_policy_versions(policy_id, 0, 1000)
         if all_policies is not None:
             all_policies_content = all_policies.get("content", None)
             return all_policies_content[0]
