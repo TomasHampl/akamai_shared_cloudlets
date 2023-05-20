@@ -2,7 +2,8 @@
 from akamai_shared_cloudlets.src.akamai_enums import AkamaiNetworks, ActivationOperations
 from akamai_shared_cloudlets.src.akamai_http_requests_wrapper import AkamaiRequestWrapper
 from akamai_shared_cloudlets.src.akamai_project_constants import DEFAULT_EDGERC_LOCATION
-from akamai_shared_cloudlets.src.exceptions import IncorrectInputParameter
+from akamai_shared_cloudlets.src.exceptions import IncorrectInputParameter, EdgeRcFileMissing
+from pathlib import Path
 
 
 class AkamaiApiRequestsAbstractions(object):
@@ -16,7 +17,10 @@ class AkamaiApiRequestsAbstractions(object):
             self.edgerc_location = DEFAULT_EDGERC_LOCATION
         else:
             self.edgerc_location = edgerc_location
-        self.request_wrapper = AkamaiRequestWrapper(edgerc_location)
+        if Path.is_file(self.edgerc_location):
+            self.request_wrapper = AkamaiRequestWrapper(edgerc_location)
+        else:
+            raise EdgeRcFileMissing(f"Unable to find the edgerc file in location {self.edgerc_location}")
 
     def list_shared_policies(self):
         """
@@ -182,8 +186,8 @@ class AkamaiApiRequestsAbstractions(object):
         """
         Creates new shared policy and returns the Akamai response
         @param group_id: is the group_id where we want to create the new shared policy
-        @param policy_name: is the name of the policy we want to assign (name should be descriptive enough so casual visitor
-         of Akamai cloudlets is able to identify what rules does the policy contain (for example)
+        @param policy_name: is the name of the policy we want to assign (name should be descriptive enough
+        so casual visitor of Akamai cloudlets is able to identify what rules does the policy contain (for example)
         @param description: is a short textual description of the policy
         @param cloudlet_type: is an 'enum' of the cloudlet policy types; permitted values are (for example): 'ER'
         @return: a dict of policy_id & policy_name or string representing the error message returned by Akamai
