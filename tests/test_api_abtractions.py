@@ -1,4 +1,5 @@
 import json
+import os
 from os import path
 
 from akamai.edgegrid import EdgeRc
@@ -24,6 +25,7 @@ def new_negative_send_get_request(path: str, query_params: dict, *args, **kwargs
 
 
 def get_akamai_host(edgerc_path):
+    print(os.listdir())
     edge_rc = EdgeRc(edgerc_path)
     return edge_rc.get('default', 'host')
 
