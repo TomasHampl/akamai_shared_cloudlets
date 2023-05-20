@@ -3,7 +3,7 @@ from akamai_shared_cloudlets.src.akamai_enums import AkamaiNetworks, ActivationO
 from akamai_shared_cloudlets.src.akamai_http_requests_wrapper import AkamaiRequestWrapper
 from akamai_shared_cloudlets.src.akamai_project_constants import DEFAULT_EDGERC_LOCATION
 from akamai_shared_cloudlets.src.exceptions import IncorrectInputParameter, EdgeRcFileMissing
-from pathlib import Path
+import os.path
 
 
 class AkamaiApiRequestsAbstractions(object):
@@ -17,7 +17,7 @@ class AkamaiApiRequestsAbstractions(object):
             self.edgerc_location = DEFAULT_EDGERC_LOCATION
         else:
             self.edgerc_location = edgerc_location
-        if Path.is_file(self.edgerc_location):
+        if os.path.isfile(self.edgerc_location):
             self.request_wrapper = AkamaiRequestWrapper(edgerc_location)
         else:
             raise EdgeRcFileMissing(f"Unable to find the edgerc file in location {self.edgerc_location}")
