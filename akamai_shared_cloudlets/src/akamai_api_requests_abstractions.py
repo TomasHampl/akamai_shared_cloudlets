@@ -1,4 +1,6 @@
 # library functions
+import jsonpath_ng
+
 from akamai_shared_cloudlets.src.akamai_enums import AkamaiNetworks, ActivationOperations
 from akamai_shared_cloudlets.src.akamai_http_requests_wrapper import AkamaiRequestWrapper
 from akamai_shared_cloudlets.src.akamai_project_constants import DEFAULT_EDGERC_LOCATION

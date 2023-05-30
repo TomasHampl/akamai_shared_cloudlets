@@ -108,3 +108,62 @@ def test_list_policy_versions(requests_mock):
     assert response is not None
     content = response["content"]
     assert content[0]["description"] == "Initial version"
+
+
+def test_list_policy_versions_negative_response(requests_mock):
+    policy_id = "1001"
+    api_destination = get_akamai_host('supplemental/sample_edgerc')
+    requests_mock.get(f"https://{api_destination}/cloudlets/v3/policies/{policy_id}/versions",
+                      status_code=404)
+    api = AkamaiApiRequestsAbstractions('supplemental/sample_edgerc')
+    response = api.list_policy_versions(policy_id, 3, 100)
+    assert response is None
+
+
+def test_get_latest_policy(requests_mock):
+    policy_id = "1001"
+    api_destination = get_akamai_host('supplemental/sample_edgerc')
+    requests_mock.get(f"https://{api_destination}/cloudlets/v3/policies/{policy_id}/versions",
+                      json=get_sample_json('list_policy_versions'))
+    api = AkamaiApiRequestsAbstractions('supplemental/sample_edgerc')
+    response = api.get_latest_policy(policy_id)
+    assert response["description"] == "Initial version"
+
+
+def test_get_latest_policy_negative_response(requests_mock):
+    policy_id = "1001"
+    api_destination = get_akamai_host('supplemental/sample_edgerc')
+    requests_mock.get(f"https://{api_destination}/cloudlets/v3/policies/{policy_id}/versions",
+                      status_code=404)
+    api = AkamaiApiRequestsAbstractions('supplemental/sample_edgerc')
+    response = api.get_latest_policy(policy_id)
+    assert response is None
+
+
+def test_get_latest_policy_version(requests_mock):
+    policy_id = "1001"
+    api_destination = get_akamai_host('supplemental/sample_edgerc')
+    requests_mock.get(f"https://{api_destination}/cloudlets/v3/policies/{policy_id}/versions",
+                      json=get_sample_json('list_policy_versions'))
+    api = AkamaiApiRequestsAbstractions('supplemental/sample_edgerc')
+    response = api.get_latest_policy_version(policy_id)
+    assert response == 1;
+
+
+def test_get_latest_policy_version_negative_response(requests_mock):
+    policy_id = "1001"
+    api_destination = get_akamai_host('supplemental/sample_edgerc')
+    requests_mock.get(f"https://{api_destination}/cloudlets/v3/policies/{policy_id}/versions",
+                      status_code=404)
+    api = AkamaiApiRequestsAbstractions('supplemental/sample_edgerc')
+    response = api.get_latest_policy_version(policy_id)
+    assert response is None
+
+
+def test_get_cloudlets(requests_mock):
+    api_destination = get_akamai_host('supplemental/sample_edgerc')
+    requests_mock.get(f"https://{api_destination}/cloudlets/v3/cloudlet-info", json=get_sample_json("cloudlet_info"))
+    api = AkamaiApiRequestsAbstractions('supplemental/sample_edgerc')
+    response = api.list_cloudlets()
+    assert response is not None
+    assert response[0]["cloudletName"] == "API_PRIORITIZATION"

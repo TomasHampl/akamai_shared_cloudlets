@@ -18,4 +18,4 @@ from akamai_shared_cloudlets.src import akamai_api_requests_abstractions as api
 api_func = api.AkamaiApiRequestsAbstractions('~/.edgerc')
 print(api_func.list_shared_policies())
 ```
-Example above does not do very much, but it shows the basic usage. First, you import (other import methods would work as well of course), then you instantiate the ```AkamaiApiRequestsAbstractions``` class using the only defined constructor (you can provide the location of your edgerc file - if you don't it defaults to ```~/.edgerc```). Last step is to use one of this numerous methods to send the request to API.
+Example above does not do very much, but it shows the basic usage. First, you import (other import methods would work as well of course), then you instantiate the ```AkamaiApiRequestsAbstractions``` class using the only defined constructor (you can provide the location of your edgerc file - if you don't, it defaults to ```~/.edgerc```). Last step is to use one of this numerous methods to send the request to API.
