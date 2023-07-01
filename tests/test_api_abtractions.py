@@ -167,3 +167,14 @@ def test_get_cloudlets(requests_mock):
     response = api.list_cloudlets()
     assert response is not None
     assert response[0]["cloudletName"] == "API_PRIORITIZATION"
+
+
+def test_list_groups(requests_mock):
+    api_destination = get_akamai_host('supplemental/sample_edgerc')
+    url = f"https://{api_destination}/cloudlets/api/v2/group-info"
+    print("URL in test: " + url)
+    requests_mock.get(f"https://{api_destination}/v2/group-info", json=get_sample_json("list_groups"))
+    api = AkamaiApiRequestsAbstractions('supplemental/sample_edgerc')
+    response = api.list_groups()
+    assert response is not None
+    assert response[0]["groupName"] == "Master Group Name"
