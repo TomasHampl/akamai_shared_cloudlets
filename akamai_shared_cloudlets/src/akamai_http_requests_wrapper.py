@@ -136,7 +136,7 @@ class AkamaiRequestWrapper(object):
         session = self.sign_request()
         session.headers.update(query_params)
         final_url = urljoin(base_url, path)
-        print("Final URL: " + final_url)
+        print(f"Final URL: '{final_url}'")
         return session.get(urljoin(base_url, path))
 
     def send_post_request(self, path: str, post_body: dict):

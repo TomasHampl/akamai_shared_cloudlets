@@ -2,6 +2,7 @@ import json
 import os
 from os import path
 
+import pytest
 from akamai.edgegrid import EdgeRc
 
 from akamai_shared_cloudlets.src.akamai_api_requests_abstractions import AkamaiApiRequestsAbstractions
@@ -172,9 +173,30 @@ def test_get_cloudlets(requests_mock):
 def test_list_groups(requests_mock):
     api_destination = get_akamai_host('supplemental/sample_edgerc')
     url = f"https://{api_destination}/cloudlets/api/v2/group-info"
-    print("URL in test: " + url)
-    requests_mock.get(f"https://{api_destination}/v2/group-info", json=get_sample_json("list_groups"))
+    print(f"URL in test: '{url}'")
+    requests_mock.get(f"{url}", json=get_sample_json("list_groups"))
     api = AkamaiApiRequestsAbstractions('supplemental/sample_edgerc')
     response = api.list_groups()
     assert response is not None
     assert response[0]["groupName"] == "Master Group Name"
+
+
+def test_get_groups_ids(requests_mock):
+    api_destination = get_akamai_host('supplemental/sample_edgerc')
+    url = f"https://{api_destination}/cloudlets/api/v2/group-info"
+    print(f"URL in test: '{url}'")
+    requests_mock.get(f"{url}", json=get_sample_json("list_groups"))
+    api = AkamaiApiRequestsAbstractions('supplemental/sample_edgerc')
+    response = api.get_group_id()
+    assert response[1234] == "Master Group Name"
+
+
+@pytest.mark.parametrize("group_name_input", ["group name", "master group name"])
+def test_get_group_id_by_name(requests_mock, group_name_input):
+    api_destination = get_akamai_host('supplemental/sample_edgerc')
+    url = f"https://{api_destination}/cloudlets/api/v2/group-info"
+    print(f"URL in test: '{url}'")
+    requests_mock.get(f"{url}", json=get_sample_json("list_groups"))
+    api = AkamaiApiRequestsAbstractions('supplemental/sample_edgerc')
+    response = api.get_group_id_by_name(group_name_input)
+    assert response == 1234

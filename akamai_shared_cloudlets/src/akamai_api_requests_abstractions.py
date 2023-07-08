@@ -169,7 +169,7 @@ class AkamaiApiRequestsAbstractions(object):
 
     def get_group_id_by_name(self, group_name: str) -> object:
         """
-        Provides the id of the group identified by its name
+        Provides the id of the group identified by its name. Caution: returns the first entry found.
         @param group_name: is the string we're looking for
         @return: string representing the group_id or None in case nothing was found, or an error has occurred
         """
@@ -177,6 +177,8 @@ class AkamaiApiRequestsAbstractions(object):
         if all_groups is not None:
             for element in all_groups:
                 if element["groupName"].lower() == group_name.lower():
+                    return element["groupId"]
+                if group_name.lower() in element["groupName"].lower():
                     return element["groupId"]
         return None
 
