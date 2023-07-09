@@ -200,3 +200,36 @@ def test_get_group_id_by_name(requests_mock, group_name_input):
     api = AkamaiApiRequestsAbstractions('supplemental/sample_edgerc')
     response = api.get_group_id_by_name(group_name_input)
     assert response == 1234
+
+
+def test_create_shared_policy(requests_mock):
+    api_destination = get_akamai_host('supplemental/sample_edgerc')
+    url = f"https://{api_destination}/cloudlets/v3/policies"
+    print(f"URL in test: '{url}'")
+    requests_mock.post(f"{url}", json=get_sample_json('create_policy_ok_response'), status_code=201)
+    api = AkamaiApiRequestsAbstractions('supplemental/sample_edgerc')
+    response = api.create_shared_policy("123", "dummy-policy", "bla", "ER")
+    assert response is not None
+    assert response["policyId"] == 1001
+
+
+def test_create_shared_policy_negative(requests_mock):
+    api_destination = get_akamai_host('supplemental/sample_edgerc')
+    url = f"https://{api_destination}/cloudlets/v3/policies"
+    print(f"URL in test: '{url}'")
+    requests_mock.post(f"{url}", json=get_sample_json('create_policy_ko_response'), status_code=403)
+    api = AkamaiApiRequestsAbstractions('supplemental/sample_edgerc')
+    response = api.create_shared_policy("123", "dummy-policy", "bla", "ER")
+    assert response is not None
+    assert response[0]["detail"] == "User does not have view capability for Edge Redirector Cloudlet in group 120."
+
+
+def test_delete_shared_policy(requests_mock):
+    api_destination = get_akamai_host('supplemental/sample_edgerc')
+    policy_id = 1234
+    url = f"https://{api_destination}/cloudlets/v3/policies/{policy_id}"
+    requests_mock.delete(f"{url}", status_code=204)
+    api = AkamaiApiRequestsAbstractions('supplemental/sample_edgerc')
+    response = api.delete_shared_policy(str(policy_id))
+    assert response == "Policy was deleted successfully"
+

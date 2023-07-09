@@ -212,9 +212,7 @@ class AkamaiApiRequestsAbstractions(object):
                 "policyName": response_json["name"]
             }
 
-        return {
-            "error": response_json["detail"]
-        }
+        return response_json["errors"]
 
     def delete_shared_policy(self, policy_id: str):
         """
