@@ -24,6 +24,11 @@ class AkamaiApiRequestsAbstractions(object):
         else:
             raise EdgeRcFileMissing(f"Unable to find the edgerc file in location {self.edgerc_location}")
 
+    def __str__(self):
+        print("Properties of AkamaiApiRequestsAbstractions object:")
+        print(f"Akamai credentials file location (edgerc_location): {self.edgerc_location}")
+        print(f"Akamai request wrapper (request_wrapper): {self.request_wrapper}")
+
     def list_shared_policies(self):
         """
         listSharedPolicies is a method that abstracts the Akamai API call to get all shared policies available
@@ -42,7 +47,9 @@ class AkamaiApiRequestsAbstractions(object):
 
     def get_shared_policy_by_name(self, policy_name: str) -> object:
         """
-        Returns Shared cloudlet policyId based on the policy name. If not found, returns None...
+        Returns Shared cloudlet policyId based on the policy name. If not found, returns None... Lookup is implemented
+        by simply comparing provided policy_name with the policy names that are available in Akamai, therefore if
+        a success is expected, provided policy name must be precise
         @param policy_name: is the name of the policy we'll be looking for in all policies
         @return: string representing the policyId or None (in case nothing was found or the API request to get the
         policies failed)
@@ -231,6 +238,14 @@ class AkamaiApiRequestsAbstractions(object):
         return f"Received status code we did not expect: {response.status_code}. Policy was NOT deleted."
 
     def delete_shared_policy_by_name(self, policy_name: str):
+        """
+        Deletes shared policy based on the provided name. This request first downloads all available policies
+        from Akamai and then looks through the returned data to determine the policy_id (therefore, if 'user' knows
+        the policy_id he/she wants to delete, it would be more effective to call the 'delete_shared_policy' and providing
+        the policy_id directly.
+        @param policy_name: is the name of the policy you wish to delete, needs to be exact match for the lookup to work
+        @return: string response indicating success / error message
+        """
         policy_id = self.get_shared_policy_by_name(policy_name)
         if policy_id is None:
             print(f"Unable to find policy with name {policy_name}")

@@ -25,6 +25,9 @@ class AkamaiRequestWrapper(object):
             self.edgerc_location = edgerc_location
         self.session = requests.session()
 
+    def __str__(self):
+        print(f"Akamai request wrapper. EdgeRC location (edgerc_location): {self.edgerc_location}")
+
     @staticmethod
     def get_info():
         print("This is a AkamaiRequestWrapper class")
