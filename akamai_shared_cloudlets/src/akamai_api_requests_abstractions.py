@@ -334,13 +334,13 @@ class AkamaiApiRequestsAbstractions(object):
         @return: bool indicating whether the (de)activation request was accepted by Akamai or not (true if yes,
         false if no)
         """
-        if self.is_akamai_network(network) is not True:
-            raise IncorrectInputParameter(f"Network parameter (akamai_network) must be either 'PRODUCTION' or 'STAGE'."
+        if self.is_akamai_network(network.lower()) is not True:
+            raise IncorrectInputParameter(f"Network parameter (akamai_network) must be either 'production' or 'stage'."
                                           f"Instead, it was {network}")
 
-        if self.is_correct_operation(operation) is not True:
-            raise IncorrectInputParameter(f"Operation parameter (operation) must be either 'ACTIVATION' or "
-                                          f"'DEACTIVATION'. Instead, it was {operation}")
+        if self.is_correct_operation(operation.lower()) is not True:
+            raise IncorrectInputParameter(f"Operation parameter (operation) must be either 'activation' or "
+                                          f"'deactivation'. Instead, it was {operation}")
 
         api_path = f"/cloudlets/v3/policies/{policy_id}/activations"
         post_body = {

@@ -214,7 +214,68 @@ def test_delete_shared_policy_by_name(requests_mock, api, api_destination):
     policy_id = 1001
     url_policies = f"https://{api_destination}/cloudlets/v3/policies"
     url_deletion = f"https://{api_destination}/cloudlets/v3/policies/{policy_id}"
-    requests_mock.get(f"{url_policies}",json=get_sample_json("list_shared_policies"))
+    requests_mock.get(f"{url_policies}", json=get_sample_json("list_shared_policies"))
     requests_mock.delete(f"{url_deletion}", status_code=204)
     response = api.delete_shared_policy_by_name("static_assets_redirector")
     assert response == "Policy was deleted successfully"
+
+
+def test_get_active_properties(requests_mock, api, api_destination):
+    policy_id = 1001
+    url = f"https://{api_destination}/cloudlets/v3/policies/{policy_id}/properties"
+    requests_mock.get(f"{url}", json=get_sample_json("get_active_properties"))
+    response = api.get_active_properties(str(policy_id))
+    assert response is not None
+    assert response["content"][0]["name"] == "property"
+
+
+@pytest.mark.parametrize("status_codes", [403, 404])
+def test_get_active_properties_negatives(requests_mock, api, api_destination, status_codes):
+    policy_id = 1001
+    url = f"https://{api_destination}/cloudlets/v3/policies/{policy_id}/properties"
+    requests_mock.get(f"{url}", status_code=status_codes)
+    response = api.get_active_properties(str(policy_id))
+    assert response is None
+
+
+@pytest.mark.parametrize("status_codes", [200, 403, 404])
+def test_get_policy_version(requests_mock, api, api_destination, status_codes):
+    policy_id = 2002
+    version = 1
+    url = f"https://{api_destination}/cloudlets/v3/policies/{policy_id}/versions/{version}"
+    requests_mock.get(f"{url}", json=get_sample_json("get_policy_version"), status_code=status_codes)
+    response = api.get_policy_version(str(policy_id), str(version))
+    if status_codes == 200:
+        assert response["matchRules"][0]["akaRuleId"] == "ac0ca0af44f57683"
+    else:
+        assert response is None
+
+
+@pytest.mark.parametrize("status_codes", [200, 403, 404, 400])
+def test_clone_non_shared_policy(requests_mock, api, api_destination, status_codes):
+    policy_id = 1001
+    additional_versions = [
+        3,
+        4
+    ]
+    shared_policy_name = "new name"
+    group_id = "123"
+    url = f"https://{api_destination}/cloudlets/v3/policies/{policy_id}/clone"
+    requests_mock.post(f"{url}", json=get_sample_json("clone_non_shared_policy"), status_code=status_codes)
+    response = api.clone_non_shared_policy(str(policy_id), additional_versions, shared_policy_name, group_id)
+    if status_codes == 200:
+        assert response == 1001
+    else:
+        assert response is None
+
+
+@pytest.mark.parametrize("status_codes", [202, 403, 404, 400])
+def test_activate_policy(requests_mock, api, api_destination, status_codes):
+    policy_id = 1001
+    url = f"https://{api_destination}/cloudlets/v3/policies/{policy_id}/activations"
+    requests_mock.post(f"{url}", json=get_sample_json("activate_policy"), status_code=status_codes)
+    response = api.activate_policy(str(policy_id), "production", "activation", str(1))
+    if status_codes == 202:
+        assert response is True
+    else:
+        assert response is False
