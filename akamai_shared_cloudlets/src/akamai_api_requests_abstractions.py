@@ -1,11 +1,12 @@
 # library functions
-import jsonpath_ng
+
+import os.path
+import logging
 
 from akamai_shared_cloudlets.src.akamai_enums import AkamaiNetworks, ActivationOperations
 from akamai_shared_cloudlets.src.akamai_http_requests_wrapper import AkamaiRequestWrapper
 from akamai_shared_cloudlets.src.akamai_project_constants import DEFAULT_EDGERC_LOCATION
 from akamai_shared_cloudlets.src.exceptions import IncorrectInputParameter, EdgeRcFileMissing
-import os.path
 
 
 class AkamaiApiRequestsAbstractions(object):
@@ -13,7 +14,8 @@ class AkamaiApiRequestsAbstractions(object):
     def __init__(self, edgerc_location: str = DEFAULT_EDGERC_LOCATION):
         """
         The only available constructor
-        @param edgerc_location:
+        @param edgerc_location: marks the location of 'edgerc' file (file that contains Akamai credentials
+        you may use to authenticate). If not provided, defaults to 'home' -> ~/.edgerc
         """
         if edgerc_location is None:
             self.edgerc_location = DEFAULT_EDGERC_LOCATION
