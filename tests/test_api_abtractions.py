@@ -1,11 +1,10 @@
 import json
 import os
+from . import common_test_func as test_common
 from os import path
-
 import pytest
 from akamai.edgegrid import EdgeRc
-
-from akamai_shared_cloudlets.src.akamai_api_requests_abstractions import AkamaiApiRequestsAbstractions
+from src.akamai_shared_cloudlets.akamai_api_requests_abstractions import AkamaiApiRequestsAbstractions
 
 
 def get_request_loc():
@@ -13,7 +12,9 @@ def get_request_loc():
 
 
 def get_sample_json(api_call):
-    file_name = path.normpath(f"supplemental/{api_call}.json")
+    folder_path = os.path.dirname(__file__)
+    file_name = path.normpath(f"{folder_path}/supplemental/{api_call}.json")
+    print(f"file name: {file_name}")
     if path.isfile(file_name):
         with open(file_name, mode="r") as json_file:
             return json.load(json_file)
@@ -21,7 +22,7 @@ def get_sample_json(api_call):
         raise FileNotFoundError(f"Could not find the file {file_name}")
 
 
-def new_negative_send_get_request(path: str, query_params: dict, *args, **kwargs):
+def new_negative_send_get_request():
     return get_sample_json('list_shared_policies')
 
 
@@ -33,12 +34,20 @@ def get_akamai_host(edgerc_path):
 
 @pytest.fixture()
 def api():
-    return AkamaiApiRequestsAbstractions('supplemental/sample_edgerc')
+    """
+    Instantiates the AkamaiApiRequestsAbstractions object and returns it, ready for tests
+    @return: an instance of AkamaiApiRequestsAbstractions
+    """
+    return AkamaiApiRequestsAbstractions(test_common.get_sample_edgerc())
 
 
 @pytest.fixture()
 def api_destination():
-    return get_akamai_host('supplemental/sample_edgerc')
+    """
+    Provides the akamai host from the 'sample' edgerc file
+    @return: a String representing the Akamai hostname obtained from the credentials file
+    """
+    return get_akamai_host(test_common.get_sample_edgerc())
 
 
 def test_list_shared_policies(requests_mock, api, api_destination):
@@ -132,7 +141,7 @@ def test_get_latest_policy_version(requests_mock, api, api_destination):
     requests_mock.get(f"https://{api_destination}/cloudlets/v3/policies/{policy_id}/versions",
                       json=get_sample_json('list_policy_versions'))
     response = api.get_latest_policy_version(policy_id)
-    assert response == 1;
+    assert response == 1
 
 
 def test_get_latest_policy_version_negative_response(requests_mock, api, api_destination):

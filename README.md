@@ -1,15 +1,19 @@
 # Akamai shared cloudlets library
 ## Purpose
-This python library should (and could) serve as the base building block for any application that 'wants' to work with Akamai Shared Cloudlets (for more information about Akamai cloudlets, see https://techdocs.akamai.com/cloudlets/reference/api).
+This python library implements the API requests that deal with Akamai Shared Cloudlets 
+(for more information about Akamai cloudlets, 
+see https://techdocs.akamai.com/cloudlets/reference/api).
 
-For whatever reason, Akamai have not put much effort in implementing the shared cloudlets into their automation products (such as Akamai CLI https://github.com/akamai/cli or Terraform Akamai provider https://registry.terraform.io/providers/akamai/akamai/latest/docs/guides/get_started_cloudlets).
+It could be used as a building block for any application using the 'shared cloudlets API'
+(such as Akamai CLI https://github.com/akamai/cli or Terraform Akamai provider https://registry.terraform.io/providers/akamai/akamai/latest/docs/guides/get_started_cloudlets).
 
 ## Getting it
 Once finished in a 'functioning' state, it should be available via the standard pypi.
 
 ## Using it
 ### Prerequisites
-You need Akamai credentials. To get them, see the https://techdocs.akamai.com/developer/docs/set-up-authentication-credentials documentation. You also need Python 3.8+ (it should work with older versions, but 3.8 is the oldest one that I tested with).
+* You need Akamai credentials. To get them, see the https://techdocs.akamai.com/developer/docs/set-up-authentication-credentials documentation. 
+* You also need Python 3.8+ (it should work with older versions, but 3.8 is the oldest one that I tested with).
 
 ### Run
 To start using, simply import & initialize the ```AkamaiRequestWrapper``` class. Something like this should work nicely:

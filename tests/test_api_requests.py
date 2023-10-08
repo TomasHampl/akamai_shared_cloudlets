@@ -1,15 +1,13 @@
-import os
 import unittest
-
-from akamai_shared_cloudlets.src import akamai_http_requests_wrapper as wrapper
+from . import common_test_func as test_common
+from src.akamai_shared_cloudlets.http_requests import *
 
 
 class TestAkamaiRequestWrapper(unittest.TestCase):
 
     def test_read_edgerc_file(self):
-        edgerc_location = self.get_working_dir() + "sample_edgerc"
-        request_wrapper = wrapper.AkamaiRequestWrapper(edgerc_location)
-        edgerc = request_wrapper.get_edgerc_file(edgerc_location)
+        edgerc_location = test_common.get_sample_edgerc()
+        edgerc = get_edgerc_file(edgerc_location)
         self.assertTrue(edgerc[1] == "default")
 
         edgerc_signer = edgerc[0]
@@ -17,31 +15,20 @@ class TestAkamaiRequestWrapper(unittest.TestCase):
         self.assertFalse(has_cloudlets)
 
     def test_get_base_url(self):
-        edgerc_location = self.get_working_dir() + "sample_edgerc"
-
-        request_wrapper = wrapper.AkamaiRequestWrapper(edgerc_location)
-        base_url = request_wrapper.get_base_url()
-        self.assertTrue(base_url, "https://akab-wmjabebv6bfjx6zw-uakssaeiqimho6qi.aaaaa.dddddd.net")
+        edgerc_location = test_common.get_sample_edgerc()
+        base_url = get_base_url(edgerc_location)
+        self.assertTrue(base_url, "https://dummy.luna.akamaiapis.net")
 
     def test_get_base_url_cloudlet(self):
-        edgerc_location = self.get_working_dir() + "sample_edgerc_cloudlet"
-        request_wrapper = wrapper.AkamaiRequestWrapper(edgerc_location)
-        base_url = request_wrapper.get_base_url()
+        edgerc_location = test_common.get_sample_edgerc("sample_edgerc")
+        base_url = get_base_url(edgerc_location)
         self.assertTrue(base_url, "dummy.cloudlets.base.url")
 
     def test_sign_request(self):
-        edgerc_location = self.get_working_dir() + "sample_edgerc"
-        request_wrapper = wrapper.AkamaiRequestWrapper(edgerc_location)
-        signed_session = request_wrapper.sign_request()
+        edgerc_location = test_common.get_sample_edgerc()
+        signed_session = sign_request(edgerc_location)
         access_token = signed_session.auth.ah.access_token
         self.assertTrue(access_token, "akab-dummy-dummy-dummy-dummy")
-
-    @staticmethod
-    def get_working_dir():
-        if "tests" in os.getcwd():
-            return os.getcwd() + "/"
-        else:
-            return os.getcwd() + "/" + "tests" + "/"
 
 
 if __name__ == '__main__':

@@ -1,35 +1,33 @@
 # library functions
 
 import os.path
-import logging
 
-from akamai_shared_cloudlets.src.akamai_enums import AkamaiNetworks, ActivationOperations
-from akamai_shared_cloudlets.src.akamai_http_requests_wrapper import AkamaiRequestWrapper
-from akamai_shared_cloudlets.src.akamai_project_constants import DEFAULT_EDGERC_LOCATION
-from akamai_shared_cloudlets.src.exceptions import IncorrectInputParameter, EdgeRcFileMissing
+from src.akamai_shared_cloudlets.http_requests import send_delete_request, send_post_request, send_get_request
+from . import akamai_enums
+from . import akamai_project_constants
+from . import exceptions
 
 
 class AkamaiApiRequestsAbstractions(object):
 
-    def __init__(self, edgerc_location: str = DEFAULT_EDGERC_LOCATION):
+    def __init__(self, edgerc_location: str = akamai_project_constants.DEFAULT_EDGERC_LOCATION):
         """
         The only available constructor
         @param edgerc_location: marks the location of 'edgerc' file (file that contains Akamai credentials
         you may use to authenticate). If not provided, defaults to 'home' -> ~/.edgerc
         """
         if edgerc_location is None:
-            self.edgerc_location = DEFAULT_EDGERC_LOCATION
+            self.edgerc_location = akamai_project_constants.DEFAULT_EDGERC_LOCATION
         else:
             self.edgerc_location = edgerc_location
-        if os.path.isfile(self.edgerc_location):
-            self.request_wrapper = AkamaiRequestWrapper(edgerc_location)
-        else:
-            raise EdgeRcFileMissing(f"Unable to find the edgerc file in location {self.edgerc_location}")
+        if not os.path.isfile(self.edgerc_location):
+            raise exceptions.EdgeRcFileMissing(f"Unable to find the edgerc file in location {self.edgerc_location}")
 
     def __str__(self):
-        print("Properties of AkamaiApiRequestsAbstractions object:")
-        print(f"Akamai credentials file location (edgerc_location): {self.edgerc_location}")
-        print(f"Akamai request wrapper (request_wrapper): {self.request_wrapper}")
+        message = "Properties of AkamaiAPIRequestsAbstractions object"
+        message = message + f"...Akamai credentials file location (edgerc_location): {self.edgerc_location}"
+        print(message)
+        return message
 
     def list_shared_policies(self):
         """
@@ -42,7 +40,7 @@ class AkamaiApiRequestsAbstractions(object):
         anything else.
         """
         api_path = "/cloudlets/v3/policies"
-        response = self.request_wrapper.send_get_request(api_path, {})
+        response = send_get_request(api_path, {}, self.edgerc_location)
         if response.status_code == 200:
             return response.json()
         return None
@@ -90,7 +88,7 @@ class AkamaiApiRequestsAbstractions(object):
         @return: json representing the Akamai response or None if nothing was found (or request to API failed)
         """
         api_path = f"/cloudlets/v3/policies/{policy_id}"
-        response = self.request_wrapper.send_get_request(api_path, {})
+        response = send_get_request(api_path, {}, self.edgerc_location)
         if response.status_code == 200:
             return response.json()
         return None
@@ -109,7 +107,7 @@ class AkamaiApiRequestsAbstractions(object):
             "page": str(page_number),
             "size": str(page_size)
         }
-        response = self.request_wrapper.send_get_request(api_path, query_params)
+        response = send_get_request(api_path, query_params, self.edgerc_location)
         if response.status_code == 200:
             return response.json()
         return None
@@ -145,7 +143,7 @@ class AkamaiApiRequestsAbstractions(object):
         @return: all available cloudlet types, or None, if an error has occurred (http status was not 200)
         """
         api_path = "/cloudlets/v3/cloudlet-info"
-        response = self.request_wrapper.send_get_request(api_path, {})
+        response = send_get_request(api_path, {}, self.edgerc_location)
         if response.status_code == 200:
             return response.json()
         return None
@@ -157,7 +155,7 @@ class AkamaiApiRequestsAbstractions(object):
         @return: json representing the Akamai response or None, if an error has occurred (http status was not 200)
         """
         api_path = "/cloudlets/api/v2/group-info"
-        response = self.request_wrapper.send_get_request(api_path, {})
+        response = send_get_request(api_path, {}, self.edgerc_location)
         if response.status_code == 200:
             return response.json()
         return None
@@ -213,7 +211,7 @@ class AkamaiApiRequestsAbstractions(object):
             "name": policy_name
         }
         api_path = "/cloudlets/v3/policies"
-        response = self.request_wrapper.send_post_request(api_path, post_body)
+        response = send_post_request(api_path, post_body, self.edgerc_location)
         response_json = response.json()
         if response.status_code == 201:
             return {
@@ -230,7 +228,7 @@ class AkamaiApiRequestsAbstractions(object):
         @return: a string informing about the operation result
         """
         api_path = f"/cloudlets/v3/policies/{policy_id}"
-        response = self.request_wrapper.send_delete_request(api_path)
+        response = send_delete_request(api_path, self.edgerc_location)
         if response.status_code == 403:
             return f"No permissions to delete policy with id '{policy_id}'"
         if response.status_code == 404:
@@ -241,12 +239,11 @@ class AkamaiApiRequestsAbstractions(object):
 
     def delete_shared_policy_by_name(self, policy_name: str):
         """
-        Deletes shared policy based on the provided name. This request first downloads all available policies
-        from Akamai and then looks through the returned data to determine the policy_id (therefore, if 'user' knows
-        the policy_id he/she wants to delete, it would be more effective to call the 'delete_shared_policy' and providing
-        the policy_id directly.
-        @param policy_name: is the name of the policy you wish to delete, needs to be exact match for the lookup to work
-        @return: string response indicating success / error message
+        Deletes shared policy based on the provided name. This request first downloads all available policies from
+        Akamai and then looks through the returned data to determine the policy_id (therefore, if 'user' knows the
+        policy_id he/she wants to delete, it would be more effective to call the 'delete_shared_policy' and providing
+        the policy_id directly). @param policy_name: is the name of the policy you wish to delete, needs to be exact
+        match for the lookup to work @return: string response indicating success / error message
         """
         policy_id = self.get_shared_policy_by_name(policy_name)
         if policy_id is None:
@@ -271,7 +268,7 @@ class AkamaiApiRequestsAbstractions(object):
             "page": page_number,
             "size": page_size
         }
-        response = self.request_wrapper.send_get_request(api_path, query_params)
+        response = send_get_request(api_path, query_params, self.edgerc_location)
         if response.status_code == 200:
             return response.json()
         return None
@@ -288,7 +285,7 @@ class AkamaiApiRequestsAbstractions(object):
         nothing was found (for example policy_id was incorrect or version does not exist)
         """
         api_path = f"/cloudlets/v3/policies/{policy_id}/versions/{policy_version}"
-        response = self.request_wrapper.send_get_request(api_path, {})
+        response = send_get_request(api_path, {}, self.edgerc_location)
         if response.status_code == 200:
             return response.json()
         return None
@@ -315,7 +312,7 @@ class AkamaiApiRequestsAbstractions(object):
             "newName": shared_policy_name
         }
 
-        response = self.request_wrapper.send_post_request(api_path, post_body)
+        response = send_post_request(api_path, post_body, self.edgerc_location)
         if response.status_code == 200:
             json_response = response.json()
             return json_response["id"]
@@ -337,12 +334,12 @@ class AkamaiApiRequestsAbstractions(object):
         false if no)
         """
         if self.is_akamai_network(network.lower()) is not True:
-            raise IncorrectInputParameter(f"Network parameter (akamai_network) must be either 'production' or 'stage'."
-                                          f"Instead, it was {network}")
+            raise exceptions.IncorrectInputParameter(f"Network parameter (akamai_network) must be either 'production' "
+                                                     f"or 'stage. Instead, it was {network}")
 
         if self.is_correct_operation(operation.lower()) is not True:
-            raise IncorrectInputParameter(f"Operation parameter (operation) must be either 'activation' or "
-                                          f"'deactivation'. Instead, it was {operation}")
+            raise exceptions.IncorrectInputParameter(f"Operation parameter (operation) must be either 'activation' or "
+                                                     f"'deactivation'. Instead, it was {operation}")
 
         api_path = f"/cloudlets/v3/policies/{policy_id}/activations"
         post_body = {
@@ -351,7 +348,7 @@ class AkamaiApiRequestsAbstractions(object):
             "policyVersion": policy_version
         }
 
-        response = self.request_wrapper.send_post_request(api_path, post_body)
+        response = send_post_request(api_path, post_body, self.edgerc_location)
         if response.status_code == 202:
             json_response = response.json()
             result = json_response["status"]
@@ -362,7 +359,7 @@ class AkamaiApiRequestsAbstractions(object):
     @staticmethod
     def is_akamai_network(obj):
         try:
-            AkamaiNetworks(obj)
+            akamai_enums.AkamaiNetworks(obj)
         except ValueError:
             return False
         return True
@@ -370,7 +367,7 @@ class AkamaiApiRequestsAbstractions(object):
     @staticmethod
     def is_correct_operation(obj):
         try:
-            ActivationOperations(obj)
+            akamai_enums.ActivationOperations(obj)
         except ValueError:
             return False
         return True
