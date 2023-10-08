@@ -10,7 +10,7 @@ authors = [
 ]
 description = "Library that implements Akamai API requests to control the cloudlet API version 3"
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.10"
 dependencies = [
     "edgegrid-python",
     "requests"
