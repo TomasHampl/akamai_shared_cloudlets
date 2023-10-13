@@ -2,7 +2,7 @@
 
 import os.path
 
-from src.akamai_shared_cloudlets.http_requests import send_delete_request, send_post_request, send_get_request
+from . import http_requests
 from . import akamai_enums
 from . import akamai_project_constants
 from . import exceptions
@@ -26,7 +26,6 @@ class AkamaiApiRequestsAbstractions(object):
     def __str__(self):
         message = "Properties of AkamaiAPIRequestsAbstractions object"
         message = message + f"...Akamai credentials file location (edgerc_location): {self.edgerc_location}"
-        print(message)
         return message
 
     def list_shared_policies(self):
@@ -40,7 +39,7 @@ class AkamaiApiRequestsAbstractions(object):
         anything else.
         """
         api_path = "/cloudlets/v3/policies"
-        response = send_get_request(api_path, {}, self.edgerc_location)
+        response = http_requests.send_get_request(api_path, {}, self.edgerc_location)
         if response.status_code == 200:
             return response.json()
         return None
@@ -88,7 +87,7 @@ class AkamaiApiRequestsAbstractions(object):
         @return: json representing the Akamai response or None if nothing was found (or request to API failed)
         """
         api_path = f"/cloudlets/v3/policies/{policy_id}"
-        response = send_get_request(api_path, {}, self.edgerc_location)
+        response = http_requests.send_get_request(api_path, {}, self.edgerc_location)
         if response.status_code == 200:
             return response.json()
         return None
@@ -107,7 +106,7 @@ class AkamaiApiRequestsAbstractions(object):
             "page": str(page_number),
             "size": str(page_size)
         }
-        response = send_get_request(api_path, query_params, self.edgerc_location)
+        response = http_requests.send_get_request(api_path, query_params, self.edgerc_location)
         if response.status_code == 200:
             return response.json()
         return None
@@ -143,7 +142,7 @@ class AkamaiApiRequestsAbstractions(object):
         @return: all available cloudlet types, or None, if an error has occurred (http status was not 200)
         """
         api_path = "/cloudlets/v3/cloudlet-info"
-        response = send_get_request(api_path, {}, self.edgerc_location)
+        response = http_requests.send_get_request(api_path, {}, self.edgerc_location)
         if response.status_code == 200:
             return response.json()
         return None
@@ -155,7 +154,7 @@ class AkamaiApiRequestsAbstractions(object):
         @return: json representing the Akamai response or None, if an error has occurred (http status was not 200)
         """
         api_path = "/cloudlets/api/v2/group-info"
-        response = send_get_request(api_path, {}, self.edgerc_location)
+        response = http_requests.send_get_request(api_path, {}, self.edgerc_location)
         if response.status_code == 200:
             return response.json()
         return None
@@ -211,7 +210,7 @@ class AkamaiApiRequestsAbstractions(object):
             "name": policy_name
         }
         api_path = "/cloudlets/v3/policies"
-        response = send_post_request(api_path, post_body, self.edgerc_location)
+        response = http_requests.send_post_request(api_path, post_body, self.edgerc_location)
         response_json = response.json()
         if response.status_code == 201:
             return {
@@ -228,7 +227,7 @@ class AkamaiApiRequestsAbstractions(object):
         @return: a string informing about the operation result
         """
         api_path = f"/cloudlets/v3/policies/{policy_id}"
-        response = send_delete_request(api_path, self.edgerc_location)
+        response = http_requests.send_delete_request(api_path, self.edgerc_location)
         if response.status_code == 403:
             return f"No permissions to delete policy with id '{policy_id}'"
         if response.status_code == 404:
@@ -268,7 +267,7 @@ class AkamaiApiRequestsAbstractions(object):
             "page": page_number,
             "size": page_size
         }
-        response = send_get_request(api_path, query_params, self.edgerc_location)
+        response = http_requests.send_get_request(api_path, query_params, self.edgerc_location)
         if response.status_code == 200:
             return response.json()
         return None
@@ -285,7 +284,7 @@ class AkamaiApiRequestsAbstractions(object):
         nothing was found (for example policy_id was incorrect or version does not exist)
         """
         api_path = f"/cloudlets/v3/policies/{policy_id}/versions/{policy_version}"
-        response = send_get_request(api_path, {}, self.edgerc_location)
+        response = http_requests.send_get_request(api_path, {}, self.edgerc_location)
         if response.status_code == 200:
             return response.json()
         return None
@@ -312,7 +311,7 @@ class AkamaiApiRequestsAbstractions(object):
             "newName": shared_policy_name
         }
 
-        response = send_post_request(api_path, post_body, self.edgerc_location)
+        response = http_requests.send_post_request(api_path, post_body, self.edgerc_location)
         if response.status_code == 200:
             json_response = response.json()
             return json_response["id"]
@@ -348,7 +347,7 @@ class AkamaiApiRequestsAbstractions(object):
             "policyVersion": policy_version
         }
 
-        response = send_post_request(api_path, post_body, self.edgerc_location)
+        response = http_requests.send_post_request(api_path, post_body, self.edgerc_location)
         if response.status_code == 202:
             json_response = response.json()
             result = json_response["status"]

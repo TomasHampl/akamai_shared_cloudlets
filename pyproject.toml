@@ -1,10 +1,6 @@
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
 [project]
-name = "akamai_shared_cloudlets"
-version = "0.0.8"
+name = "akamai-shared-cloudlets"
+version = "0.0.13"
 authors = [
   { name="Tomas Hampl", email="tomas.hampl@gmail.com" },
 ]
@@ -13,21 +9,20 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "edgegrid-python",
-    "requests"
+    "requests",
 ]
 
-[tool.hatch.build.targets.wheel]
-packages = [
-    "akamai-shared-cloudlets/src",
-    "requirements.txt"
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-mock",
+    "coverage",
+    "requests-mock"
 ]
-require-runtime-dependencies = true
-[tool.hatch.build.sources]
-"akamai-shared-cloudlets/src" = "akamai-shared-cloudlets"
-[tool.hatch.build]
-skip-excluded-dirs = true
-[tool.hatch.metadata]
-allow-direct-references = true
+
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
 
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -50,3 +45,6 @@ testpaths = [
 pythonpath = [
     "."
 ]
+
+[project.scripts]
+cloudlets = "akamai_shared_cloudlets:__main__.main"

@@ -7,12 +7,12 @@ import requests
 from akamai.edgegrid import EdgeGridAuth, EdgeRc
 from requests import Request
 
-from src.akamai_shared_cloudlets.akamai_project_constants import DEFAULT_EDGERC_LOCATION
+from . import akamai_project_constants
 from . import akamai_project_constants as constants
 from . import exceptions
 
 
-def sign_request(edgerc_location: str = DEFAULT_EDGERC_LOCATION):
+def sign_request(edgerc_location: str = akamai_project_constants.DEFAULT_EDGERC_LOCATION):
     """
     Method to sign the session that is part of all the requests provided by this class
     @param edgerc_location: location of the edgerc file, default to {@code ~/.edgerc} if not provided.
@@ -25,7 +25,7 @@ def sign_request(edgerc_location: str = DEFAULT_EDGERC_LOCATION):
     return session
 
 
-def get_base_url(edgerc_location: str = DEFAULT_EDGERC_LOCATION):
+def get_base_url(edgerc_location: str = akamai_project_constants.DEFAULT_EDGERC_LOCATION):
     """
     Utility method that extracts the 'hostname' for our API call from the credentials file ('edgerc'). If the
     credentials file location is not provided, it defaults to ~/.edgerc
@@ -37,7 +37,10 @@ def get_base_url(edgerc_location: str = DEFAULT_EDGERC_LOCATION):
         return 'https://%s' % read_edge_grid_file("default", "host", edgerc_location)
 
 
-def read_edge_grid_file(section: str, key: str, edgerc_location: str = DEFAULT_EDGERC_LOCATION, ) -> str:
+def read_edge_grid_file(
+        section: str,
+        key: str,
+        edgerc_location: str = akamai_project_constants.DEFAULT_EDGERC_LOCATION) -> str:
     """
     Reads the credentials file and provides the value of the specified section. If such section does not exist,
     we try to return the value related to 'default' section (assuming that at least THAT should always exist in
@@ -68,7 +71,7 @@ def get_edgerc_file(edgerc_location: str):
     in the initialized location
     """
     if edgerc_location is None:
-        edgerc_location = constants.DEFAULT_EDGERC_LOCATION
+        edgerc_location = akamai_project_constants.DEFAULT_EDGERC_LOCATION
 
     if does_edgegrid_file_exist(edgerc_location) is True:
         edge_rc = EdgeRc(edgerc_location)
@@ -89,7 +92,10 @@ def does_edgegrid_file_exist(edge_file_location: str):
     return False
 
 
-def send_get_request(path: str, query_params: dict, edgerc_location: str = DEFAULT_EDGERC_LOCATION):
+def send_get_request(
+        path: str,
+        query_params: dict,
+        edgerc_location: str = akamai_project_constants.DEFAULT_EDGERC_LOCATION):
     """
     Serves as GET request abstraction
     @param edgerc_location: is the location of Akamai credentials file, if not provided, defaults to ~/.edgerc
@@ -108,7 +114,10 @@ def send_get_request(path: str, query_params: dict, edgerc_location: str = DEFAU
     return session.get(urljoin(base_url, path))
 
 
-def send_post_request(path: str, post_body: dict, edgerc_location: str = DEFAULT_EDGERC_LOCATION):
+def send_post_request(
+        path: str,
+        post_body: dict,
+        edgerc_location: str = akamai_project_constants.DEFAULT_EDGERC_LOCATION):
     """
     Serves as an abstraction of most of the 'post' http requests. Sets the 'accept' & 'content-type' headers to
     'application/json'
@@ -131,7 +140,7 @@ def send_post_request(path: str, post_body: dict, edgerc_location: str = DEFAULT
     return session.send(prepared_request)
 
 
-def send_delete_request(path: str, edgerc_location: str = DEFAULT_EDGERC_LOCATION):
+def send_delete_request(path: str, edgerc_location: str = akamai_project_constants.DEFAULT_EDGERC_LOCATION):
     """
     Serves as an abstraction of 'delete' request. Contains no logic to assess the correctness of the data provided
     or response returned.
@@ -151,7 +160,7 @@ def send_delete_request(path: str, edgerc_location: str = DEFAULT_EDGERC_LOCATIO
     return session.send(prepared_request)
 
 
-def send_put_request(path: str, body: dict, edgerc_location: str = DEFAULT_EDGERC_LOCATION):
+def send_put_request(path: str, body: dict, edgerc_location: str = akamai_project_constants.DEFAULT_EDGERC_LOCATION):
     """
     Serves as an abstraction of PUT request. Contains no logic to assess the correctness of the data provided or
     response returned
