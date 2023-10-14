@@ -35,6 +35,8 @@ def get_base_url(edgerc_location: str = akamai_project_constants.DEFAULT_EDGERC_
     except NoSectionError:
         print("Cannot find section 'cloudlets' in EdgeRc file, falling back to 'default'")
         return 'https://%s' % read_edge_grid_file("default", "host", edgerc_location)
+    except exceptions.EdgeRcFileMissing:
+        print(f"Unable to find the 'edgerc' file at provided location {edgerc_location}")
 
 
 def read_edge_grid_file(
@@ -174,7 +176,7 @@ def send_put_request(path: str, body: dict, edgerc_location: str = akamai_projec
         "accept": constants.JSON_CONTENT_TYPE,
         "content-type": constants.JSON_CONTENT_TYPE
     }
-    base_url = get_base_url()
+    base_url = get_base_url(edgerc_location)
     destination = urljoin(base_url, path)
     request = Request('PUT', destination, data=json.dumps(body), headers=request_headers)
     session = sign_request(edgerc_location)

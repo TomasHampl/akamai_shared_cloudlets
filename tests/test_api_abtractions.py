@@ -4,7 +4,7 @@ from . import common_test_func as test_common
 from os import path
 import pytest
 from akamai.edgegrid import EdgeRc
-from src.akamai_shared_cloudlets.akamai_api_requests_abstractions import AkamaiApiRequestsAbstractions
+import src.akamai_shared_cloudlets.akamai_api_requests_abstractions as api
 
 
 def get_request_loc():
@@ -32,13 +32,13 @@ def get_akamai_host(edgerc_path):
     return edge_rc.get('default', 'host')
 
 
-@pytest.fixture()
-def api():
-    """
-    Instantiates the AkamaiApiRequestsAbstractions object and returns it, ready for tests
-    @return: an instance of AkamaiApiRequestsAbstractions
-    """
-    return AkamaiApiRequestsAbstractions(test_common.get_sample_edgerc())
+# @pytest.fixture()
+# def api():
+#     """
+#     Instantiates the AkamaiApiRequestsAbstractions object and returns it, ready for tests
+#     @return: an instance of AkamaiApiRequestsAbstractions
+#     """
+#     return AkamaiApiRequestsAbstractions(test_common.get_sample_edgerc())
 
 
 @pytest.fixture()
@@ -50,165 +50,174 @@ def api_destination():
     return get_akamai_host(test_common.get_sample_edgerc())
 
 
-def test_list_shared_policies(requests_mock, api, api_destination):
+@pytest.fixture()
+def test_edgerc_file():
+    """
+    Provides the location of the 'sample' edgerc file @return: a String representing the location of edgerc file that
+    can be used for testing purposes (it contains no real credentials values to Akamai APIs)
+    """
+    return test_common.get_sample_edgerc()
+
+
+def test_list_shared_policies(requests_mock, test_edgerc_file, api_destination):
     requests_mock.get(f"https://{api_destination}/cloudlets/v3/policies", json=get_sample_json("list_shared_policies"))
-    response = api.list_shared_policies()
+    response = api.list_shared_policies(test_edgerc_file)
     assert response is not None
 
 
-def test_list_shared_policies_negative(requests_mock, api, api_destination):
+def test_list_shared_policies_negative(requests_mock, test_edgerc_file, api_destination):
     requests_mock.get(f"https://{api_destination}/cloudlets/v3/policies", status_code=404)
-    response = api.list_shared_policies()
+    response = api.list_shared_policies(test_edgerc_file)
     assert response is None
 
 
-def test_find_shared_policy_by_name(requests_mock, api, api_destination):
+def test_find_shared_policy_by_name(requests_mock, test_edgerc_file, api_destination):
     requests_mock.get(f"https://{api_destination}/cloudlets/v3/policies", json=get_sample_json("list_shared_policies"))
-    response = api.get_shared_policy_by_name("static_assets_redirector")
+    response = api.get_shared_policy_by_name("static_assets_redirector", test_edgerc_file)
     assert response == 1001
 
 
-def test_find_shared_policy_by_name_negative(requests_mock, api, api_destination):
+def test_find_shared_policy_by_name_negative(requests_mock, test_edgerc_file, api_destination):
     requests_mock.get(f"https://{api_destination}/cloudlets/v3/policies", json=get_sample_json("list_shared_policies"))
-    response = api.get_shared_policy_by_name("not_present")
+    response = api.get_shared_policy_by_name("not_present", test_edgerc_file)
     assert response is None
 
 
-def test_find_shared_policy_by_approximate_name(requests_mock, api, api_destination):
+def test_find_shared_policy_by_approximate_name(requests_mock, test_edgerc_file, api_destination):
     requests_mock.get(f"https://{api_destination}/cloudlets/v3/policies", json=get_sample_json("list_shared_policies"))
-    response = api.get_shared_policies_by_approximate_name("assets")
+    response = api.get_shared_policies_by_approximate_name("assets", test_edgerc_file)
     assert response == {"static_assets_redirector": 1001}
 
 
-def test_find_shared_policy_by_approximate_name_negative(requests_mock, api, api_destination):
+def test_find_shared_policy_by_approximate_name_negative(requests_mock, test_edgerc_file, api_destination):
     requests_mock.get(f"https://{api_destination}/cloudlets/v3/policies", json=get_sample_json("list_shared_policies"))
-    response = api.get_shared_policies_by_approximate_name("ssssss")
+    response = api.get_shared_policies_by_approximate_name("incorrect-policy-name", test_edgerc_file)
     assert response == {}
 
 
-def test_get_policy_by_id(requests_mock, api, api_destination):
+def test_get_policy_by_id(requests_mock, test_edgerc_file, api_destination):
     policy_id = "1001"
     requests_mock.get(f"https://{api_destination}/cloudlets/v3/policies/{policy_id}",
                       json=get_sample_json("get_a_policy"))
-    response = api.get_policy_by_id("1001")
+    response = api.get_policy_by_id("1001", test_edgerc_file)
     assert response is not None
 
 
-def test_get_policy_by_id_negative(requests_mock, api, api_destination):
+def test_get_policy_by_id_negative(requests_mock, test_edgerc_file, api_destination):
     policy_id = "1001"
     requests_mock.get(f"https://{api_destination}/cloudlets/v3/policies/{policy_id}",
                       status_code=401)
-    response = api.get_policy_by_id("1001")
+    response = api.get_policy_by_id("1001", test_edgerc_file)
     assert response is None
 
 
-def test_list_policy_versions(requests_mock, api, api_destination):
+def test_list_policy_versions(requests_mock, test_edgerc_file, api_destination):
     policy_id = "1001"
     requests_mock.get(f"https://{api_destination}/cloudlets/v3/policies/{policy_id}/versions",
                       json=get_sample_json('list_policy_versions'))
-    response = api.list_policy_versions(policy_id, 3, 100)
+    response = api.list_policy_versions(policy_id, 3, 100, test_edgerc_file)
     assert response is not None
     content = response["content"]
     assert content[0]["description"] == "Initial version"
 
 
-def test_list_policy_versions_negative_response(requests_mock, api, api_destination):
+def test_list_policy_versions_negative_response(requests_mock, test_edgerc_file, api_destination):
     policy_id = "1001"
     requests_mock.get(f"https://{api_destination}/cloudlets/v3/policies/{policy_id}/versions",
                       status_code=404)
-    response = api.list_policy_versions(policy_id, 3, 100)
+    response = api.list_policy_versions(policy_id, 3, 100, test_edgerc_file)
     assert response is None
 
 
-def test_get_latest_policy(requests_mock, api, api_destination):
+def test_get_latest_policy(requests_mock, test_edgerc_file, api_destination):
     policy_id = "1001"
     requests_mock.get(f"https://{api_destination}/cloudlets/v3/policies/{policy_id}/versions",
                       json=get_sample_json('list_policy_versions'))
-    response = api.get_latest_policy(policy_id)
+    response = api.get_latest_policy(policy_id, test_edgerc_file)
     assert response["description"] == "Initial version"
 
 
-def test_get_latest_policy_negative_response(requests_mock, api, api_destination):
+def test_get_latest_policy_negative_response(requests_mock, test_edgerc_file, api_destination):
     policy_id = "1001"
     requests_mock.get(f"https://{api_destination}/cloudlets/v3/policies/{policy_id}/versions",
                       status_code=404)
-    response = api.get_latest_policy(policy_id)
+    response = api.get_latest_policy(policy_id, test_edgerc_file)
     assert response is None
 
 
-def test_get_latest_policy_version(requests_mock, api, api_destination):
+def test_get_latest_policy_version(requests_mock, test_edgerc_file, api_destination):
     policy_id = "1001"
     requests_mock.get(f"https://{api_destination}/cloudlets/v3/policies/{policy_id}/versions",
                       json=get_sample_json('list_policy_versions'))
-    response = api.get_latest_policy_version(policy_id)
+    response = api.get_latest_policy_version(policy_id, test_edgerc_file)
     assert response == 1
 
 
-def test_get_latest_policy_version_negative_response(requests_mock, api, api_destination):
+def test_get_latest_policy_version_negative_response(requests_mock, test_edgerc_file, api_destination):
     policy_id = "1001"
     requests_mock.get(f"https://{api_destination}/cloudlets/v3/policies/{policy_id}/versions",
                       status_code=404)
-    response = api.get_latest_policy_version(policy_id)
+    response = api.get_latest_policy_version(policy_id, test_edgerc_file)
     assert response is None
 
 
-def test_get_cloudlets(requests_mock, api, api_destination):
+def test_get_cloudlets(requests_mock, test_edgerc_file, api_destination):
     requests_mock.get(f"https://{api_destination}/cloudlets/v3/cloudlet-info", json=get_sample_json("cloudlet_info"))
-    response = api.list_cloudlets()
+    response = api.list_cloudlets(test_edgerc_file)
     assert response is not None
     assert response[0]["cloudletName"] == "API_PRIORITIZATION"
 
 
-def test_list_groups(requests_mock, api, api_destination):
+def test_list_groups(requests_mock, test_edgerc_file, api_destination):
     url = f"https://{api_destination}/cloudlets/api/v2/group-info"
     print(f"URL in test: '{url}'")
     requests_mock.get(f"{url}", json=get_sample_json("list_groups"))
-    response = api.list_groups()
+    response = api.list_groups(test_edgerc_file)
     assert response is not None
     assert response[0]["groupName"] == "Master Group Name"
 
 
-def test_get_groups_ids(requests_mock, api, api_destination):
+def test_get_groups_ids(requests_mock, test_edgerc_file, api_destination):
     url = f"https://{api_destination}/cloudlets/api/v2/group-info"
     print(f"URL in test: '{url}'")
     requests_mock.get(f"{url}", json=get_sample_json("list_groups"))
-    response = api.get_group_id()
+    response = api.get_group_id(test_edgerc_file)
     assert response[1234] == "Master Group Name"
 
 
 @pytest.mark.parametrize("group_name_input", ["group name", "master group name"])
-def test_get_group_id_by_name(requests_mock, group_name_input, api, api_destination):
+def test_get_group_id_by_name(requests_mock, group_name_input, test_edgerc_file, api_destination):
     url = f"https://{api_destination}/cloudlets/api/v2/group-info"
     print(f"URL in test: '{url}'")
     requests_mock.get(f"{url}", json=get_sample_json("list_groups"))
-    response = api.get_group_id_by_name(group_name_input)
+    response = api.get_group_id_by_name(group_name_input, test_edgerc_file)
     assert response == 1234
 
 
-def test_create_shared_policy(requests_mock, api, api_destination):
+def test_create_shared_policy(requests_mock, test_edgerc_file, api_destination):
     url = f"https://{api_destination}/cloudlets/v3/policies"
     print(f"URL in test: '{url}'")
     requests_mock.post(f"{url}", json=get_sample_json('create_policy_ok_response'), status_code=201)
-    response = api.create_shared_policy("123", "dummy-policy", "bla", "ER")
+    response = api.create_shared_policy("123", "dummy-policy", "bla", "ER", test_edgerc_file)
     assert response is not None
     assert response["policyId"] == 1001
 
 
-def test_create_shared_policy_negative(requests_mock, api, api_destination):
+def test_create_shared_policy_negative(requests_mock, test_edgerc_file, api_destination):
     url = f"https://{api_destination}/cloudlets/v3/policies"
     print(f"URL in test: '{url}'")
     requests_mock.post(f"{url}", json=get_sample_json('create_policy_ko_response'), status_code=403)
-    response = api.create_shared_policy("123", "dummy-policy", "bla", "ER")
+    response = api.create_shared_policy("123", "dummy-policy", "bla", "ER", test_edgerc_file)
     assert response is not None
     assert response[0]["detail"] == "User does not have view capability for Edge Redirector Cloudlet in group 120."
 
 
 @pytest.mark.parametrize("status_codes", [204, 403, 404, 500])
-def test_delete_shared_policy(requests_mock, api, api_destination, status_codes):
+def test_delete_shared_policy(requests_mock, test_edgerc_file, api_destination, status_codes):
     policy_id = 1234
     url = f"https://{api_destination}/cloudlets/v3/policies/{policy_id}"
     requests_mock.delete(f"{url}", status_code=status_codes)
-    response = api.delete_shared_policy(str(policy_id))
+    response = api.delete_shared_policy(str(policy_id), test_edgerc_file)
     if status_codes == 204:
         assert response == "Policy was deleted successfully"
     if status_codes == 403:
@@ -219,41 +228,41 @@ def test_delete_shared_policy(requests_mock, api, api_destination, status_codes)
         assert "Received status code we did not expect" in response
 
 
-def test_delete_shared_policy_by_name(requests_mock, api, api_destination):
+def test_delete_shared_policy_by_name(requests_mock, test_edgerc_file, api_destination):
     policy_id = 1001
     url_policies = f"https://{api_destination}/cloudlets/v3/policies"
     url_deletion = f"https://{api_destination}/cloudlets/v3/policies/{policy_id}"
     requests_mock.get(f"{url_policies}", json=get_sample_json("list_shared_policies"))
     requests_mock.delete(f"{url_deletion}", status_code=204)
-    response = api.delete_shared_policy_by_name("static_assets_redirector")
+    response = api.delete_shared_policy_by_name("static_assets_redirector", test_edgerc_file)
     assert response == "Policy was deleted successfully"
 
 
-def test_get_active_properties(requests_mock, api, api_destination):
+def test_get_active_properties(requests_mock, test_edgerc_file, api_destination):
     policy_id = 1001
     url = f"https://{api_destination}/cloudlets/v3/policies/{policy_id}/properties"
     requests_mock.get(f"{url}", json=get_sample_json("get_active_properties"))
-    response = api.get_active_properties(str(policy_id))
+    response = api.get_active_properties(str(policy_id), str(1), str(100), test_edgerc_file)
     assert response is not None
     assert response["content"][0]["name"] == "property"
 
 
 @pytest.mark.parametrize("status_codes", [403, 404])
-def test_get_active_properties_negatives(requests_mock, api, api_destination, status_codes):
+def test_get_active_properties_negatives(requests_mock, test_edgerc_file, api_destination, status_codes):
     policy_id = 1001
     url = f"https://{api_destination}/cloudlets/v3/policies/{policy_id}/properties"
     requests_mock.get(f"{url}", status_code=status_codes)
-    response = api.get_active_properties(str(policy_id))
+    response = api.get_active_properties(str(policy_id), str(1), str(100), test_edgerc_file)
     assert response is None
 
 
 @pytest.mark.parametrize("status_codes", [200, 403, 404])
-def test_get_policy_version(requests_mock, api, api_destination, status_codes):
+def test_get_policy_version(requests_mock, test_edgerc_file, api_destination, status_codes):
     policy_id = 2002
     version = 1
     url = f"https://{api_destination}/cloudlets/v3/policies/{policy_id}/versions/{version}"
     requests_mock.get(f"{url}", json=get_sample_json("get_policy_version"), status_code=status_codes)
-    response = api.get_policy_version(str(policy_id), str(version))
+    response = api.get_policy_version(str(policy_id), str(version), test_edgerc_file)
     if status_codes == 200:
         assert response["matchRules"][0]["akaRuleId"] == "ac0ca0af44f57683"
     else:
@@ -261,7 +270,7 @@ def test_get_policy_version(requests_mock, api, api_destination, status_codes):
 
 
 @pytest.mark.parametrize("status_codes", [200, 403, 404, 400])
-def test_clone_non_shared_policy(requests_mock, api, api_destination, status_codes):
+def test_clone_non_shared_policy(requests_mock, test_edgerc_file, api_destination, status_codes):
     policy_id = 1001
     additional_versions = [
         3,
@@ -271,7 +280,7 @@ def test_clone_non_shared_policy(requests_mock, api, api_destination, status_cod
     group_id = "123"
     url = f"https://{api_destination}/cloudlets/v3/policies/{policy_id}/clone"
     requests_mock.post(f"{url}", json=get_sample_json("clone_non_shared_policy"), status_code=status_codes)
-    response = api.clone_non_shared_policy(str(policy_id), additional_versions, shared_policy_name, group_id)
+    response = api.clone_non_shared_policy(str(policy_id), additional_versions, shared_policy_name, group_id, test_edgerc_file)
     if status_codes == 200:
         assert response == 1001
     else:
@@ -279,11 +288,11 @@ def test_clone_non_shared_policy(requests_mock, api, api_destination, status_cod
 
 
 @pytest.mark.parametrize("status_codes", [202, 403, 404, 400])
-def test_activate_policy(requests_mock, api, api_destination, status_codes):
+def test_activate_policy(requests_mock, test_edgerc_file, api_destination, status_codes):
     policy_id = 1001
     url = f"https://{api_destination}/cloudlets/v3/policies/{policy_id}/activations"
     requests_mock.post(f"{url}", json=get_sample_json("activate_policy"), status_code=status_codes)
-    response = api.activate_policy(str(policy_id), "production", "activation", str(1))
+    response = api.activate_policy(str(policy_id), "production", "activation", str(1), test_edgerc_file)
     if status_codes == 202:
         assert response is True
     else:
