@@ -112,8 +112,8 @@ def send_get_request(
     session = sign_request(edgerc_location)
     session.headers.update(query_params)
     final_url = urljoin(base_url, path)
-    print(f"Final URL: '{final_url}'")
-    return session.get(urljoin(base_url, path))
+    print("Sending request to Akamai...")
+    return session.get(final_url)
 
 
 def send_post_request(
