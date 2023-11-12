@@ -39,8 +39,8 @@ def find_policy_by_name(policy_name, edgerc_location):
         number_of_policies = len(policy)
         print(f"We could not find policy matching exactly {policy_name}. Instead we found {number_of_policies} "
               f"policies that contain the provided policy name '{policy_name}'")
-        for policy, id in policy.items():
-            print(f"{policy}: {id}")
+        for policy, policy_identifier in policy.items():
+            print(f"{policy}: {policy_identifier}")
 
 
 @click.command()
