@@ -14,6 +14,28 @@ def main():
 
 @click.command()
 @click.argument(
+    "policy_id",
+    type=click.STRING,
+)
+@click.option(
+    "--edgerc-location",
+    "edgerc_location",
+    type=click.Path(exists=False),
+    default="~/.edgerc",
+    help="Gives an option to provide your own location of the 'edgerc' file."
+)
+def find_policy_by_id(policy_id, edgerc_location):
+    """Provides the shared policy (including its details) identified by an ID. Returned data is in json format"""
+    edgerc_location = get_home_folder(edgerc_location)
+    policy = api.get_policy_by_id(policy_id, edgerc_location)
+    if policy is not None:
+        print(policy)
+    else:
+        print(f"Could not find any policy with ID {policy_id}")
+
+
+@click.command()
+@click.argument(
     "policy_name",
     type=click.STRING,
 )
@@ -84,6 +106,7 @@ def get_home_folder(edgerc_location: str):
 
 
 main.add_command(find_policy_by_name)
+main.add_command(find_policy_by_id)
 main.add_command(list_policies)
 
 if __name__ == "__main__":

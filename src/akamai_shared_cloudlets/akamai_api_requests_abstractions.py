@@ -277,20 +277,23 @@ def delete_shared_policy_by_name(
         edgerc_location: str = akamai_project_constants.DEFAULT_EDGERC_LOCATION):
     """
     Deletes shared policy based on the provided name. This request first downloads all available policies from
-    Akamai and then looks through the returned data to determine the policy_id (therefore, if 'user' knows the
-    policy_id he/she wants to delete, it would be more effective to call the 'delete_shared_policy' and providing
-    the policy_id directly).
+    Akamai and then looks through the returned data to determine the policy (therefore, if 'user' knows the
+    policy he/she wants to delete, it would be more effective to call the 'delete_shared_policy' and providing
+    the policy directly).
     @param policy_name: is the name of the policy you wish to delete, needs to be exact
     match for the lookup to work
     @param edgerc_location: is the location of EdgeRC file that we use to extract the authentication credentials for
      your API user
     @return: string response indicating success / error message
     """
-    policy_id = get_shared_policy_by_name(policy_name, edgerc_location)
-    if policy_id is None:
-        print(f"Unable to find policy with name {policy_name}")
-    else:
+    policy = get_shared_policy_by_name(policy_name, edgerc_location)
+    if len(policy) == 0:
+        print(f"Unable to find policy with name {policy_name}. No policy was deleted")
+    elif len(policy) == 1:
+        policy_id = next(iter(policy.values()))
         return delete_shared_policy(str(policy_id), edgerc_location)
+    else:
+        print(f"More than one policies returned based on name '{policy_name}'. Not deleting anything...")
 
 
 def get_active_properties(policy_id: str,

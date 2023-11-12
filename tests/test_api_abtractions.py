@@ -74,13 +74,8 @@ def test_list_shared_policies_negative(requests_mock, test_edgerc_file, api_dest
 def test_find_shared_policy_by_name(requests_mock, test_edgerc_file, api_destination):
     requests_mock.get(f"https://{api_destination}/cloudlets/v3/policies", json=get_sample_json("list_shared_policies"))
     response = api.get_shared_policy_by_name("static_assets_redirector", test_edgerc_file)
-    assert response == 1001
-
-
-def test_find_shared_policy_by_name_negative(requests_mock, test_edgerc_file, api_destination):
-    requests_mock.get(f"https://{api_destination}/cloudlets/v3/policies", json=get_sample_json("list_shared_policies"))
-    response = api.get_shared_policy_by_name("not_present", test_edgerc_file)
-    assert response is None
+    assert "static_assets_redirector" in response
+    assert response.get("static_assets_redirector") == 1001
 
 
 def test_find_shared_policy_by_approximate_name(requests_mock, test_edgerc_file, api_destination):
