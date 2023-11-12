@@ -25,24 +25,44 @@ def list_shared_policies(edgerc_location: str = akamai_project_constants.DEFAULT
 
 def get_shared_policy_by_name(
         policy_name: str,
-        edgerc_location: str = akamai_project_constants.DEFAULT_EDGERC_LOCATION) -> object:
+        edgerc_location: str = akamai_project_constants.DEFAULT_EDGERC_LOCATION) -> dict:
     """
-    Returns Shared cloudlet policyId based on the policy name. If not found, returns None... Lookup is implemented
-    by simply comparing provided policy_name with the policy names that are available in Akamai, therefore if
-    a success is expected, provided policy name must be precise
+    Returns Shared cloudlet policyId based on the policy name. If not found, returns None... If no match is found using
+    exact comparison, we return all items matching partially
     @param edgerc_location: is the location of EdgeRC file that we use to extract the authentication credentials for
      your API user
     @param policy_name: is the name of the policy we'll be looking for in all policies
-    @return: string representing the policyId or None (in case nothing was found or the API request to get the
-    policies failed)
+    @return: dict that contains the policy (or policies) matching the name
     """
+    response_dict = {}
     response_json = list_shared_policies(edgerc_location)
     if response_json is not None:
         policies = response_json["content"]
         for policy_object in policies:
             if policy_object['name'] == policy_name:
-                return policy_object['id']
-    return None
+                policy_id = policy_object['id']
+                response_dict.update({policy_name: policy_id})
+                return response_dict
+    return get_policies_by_approximate_name(response_json, policy_name)
+
+
+def get_policies_by_approximate_name(response_json, policy_name: str) -> dict:
+    """
+    Parses the Akamai response related to 'get shared policies' and returns a dict of the items partially matching
+    the provided policy_name. May contain 0 items ...
+    @param response_json: is a string representing the Akamai response
+    @param policy_name: is a string representing the policy name we want to find
+    @return: a dict with policy name as key and its id as value
+    """
+    result_list = {}
+    if response_json is not None:
+        all_policies = response_json["content"]
+        for policy_object in all_policies:
+            if policy_name.lower() in policy_object["name"]:
+                policy = policy_object["name"]
+                policy_id = policy_object["id"]
+                result_list.update({policy: policy_id})
+    return result_list
 
 
 def get_shared_policies_by_approximate_name(
@@ -56,17 +76,8 @@ def get_shared_policies_by_approximate_name(
     @param policy_name: is a string we want to find in the shared policies (needle)
     @return: dictionary of policy names & ids, if nothing was found, returns empty dict
     """
-
-    result_list = {}
     response_json = list_shared_policies(edgerc_location)
-    if response_json is not None:
-        all_policies = response_json["content"]
-        for policy_object in all_policies:
-            if policy_name.lower() in policy_object["name"]:
-                policy = policy_object["name"]
-                policy_id = policy_object["id"]
-                result_list.update({policy: policy_id})
-    return result_list
+    return get_policies_by_approximate_name(response_json, policy_name)
 
 
 def get_policy_by_id(policy_id: str, edgerc_location: str = akamai_project_constants.DEFAULT_EDGERC_LOCATION) -> object:

@@ -28,10 +28,19 @@ def find_policy_by_name(policy_name, edgerc_location):
     """ Returns the id of the policy identified by the provided name. Returns nothing, if policy not found in Akamai """
     edgerc = get_home_folder(edgerc_location)
     policy = api.get_shared_policy_by_name(policy_name, edgerc)
-    if policy is not None:
-        print(f"Policy name {policy_name} has ID {policy}")
+    if len(policy) == 0:
+        print(f"We found no policy matching the name {policy_name}. Please check the input for"
+              f" any typing errors and try again")
+    if len(policy) == 1:
+        final_policy_name = list(policy)[0]
+        policy_id = policy.get(final_policy_name)
+        print(f"We found the following policy matching the name {final_policy_name}: {policy_id} ")
     else:
-        print(f"No policy with name {policy_name} found.")
+        number_of_policies = len(policy)
+        print(f"We could not find policy matching exactly {policy_name}. Instead we found {number_of_policies} "
+              f"policies that contain the provided policy name '{policy_name}'")
+        for policy, id in policy.items():
+            print(f"{policy}: {id}")
 
 
 @click.command()
@@ -43,7 +52,7 @@ def find_policy_by_name(policy_name, edgerc_location):
     help="Gives an option to provide your own location of the 'edgerc' file."
 )
 @click.option(
-    "--format",
+    "--response-format",
     help="Controls how to print the response. If 'text' is chosen, response contains "
          "just policy names with their respective id"
          "response_format",
@@ -51,7 +60,8 @@ def find_policy_by_name(policy_name, edgerc_location):
         'json',
         'text'
     ],
-        case_sensitive=False)
+        case_sensitive=False
+    )
 )
 def list_policies(edgerc_location, response_format):
     """ Returns all available policies"""
