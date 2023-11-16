@@ -7,7 +7,7 @@ import akamai_shared_cloudlets.shared as common
 @click.group()
 def main():
     """
-    Empty method that only exists because of the command group
+    App to provide abstraction of Akamai shared cloudlets
     """
     pass
 
@@ -101,12 +101,32 @@ def list_policies(edgerc_location, response_format):
         print("No policies found...perhaps your credentials do not grant you permissions to view any policies?")
 
 
+@click.command()
+@click.option(
+    "--edgerc-location",
+    "edgerc_location",
+    type=click.Path(exists=False),
+    default="~/.edgerc",
+    help="Gives an option to provide your own location of the 'edgerc' file."
+)
+def list_cloudlets(edgerc_location):
+    """Returns the json with available cloudlet types"""
+    edgerc_location = get_home_folder(edgerc_location)
+    cloudlets = api.list_cloudlets(edgerc_location)
+    if cloudlets is not None:
+        print(cloudlets)
+    else:
+        print(f"Could not find any cloudlet types. Perhaps your credentials file ({edgerc_location})"
+              f" does not grant you enough permissions?")
+
+
 def get_home_folder(edgerc_location: str):
     return os.path.expanduser(edgerc_location)
 
 
 main.add_command(find_policy_by_name)
 main.add_command(find_policy_by_id)
+main.add_command(list_cloudlets)
 main.add_command(list_policies)
 
 if __name__ == "__main__":
