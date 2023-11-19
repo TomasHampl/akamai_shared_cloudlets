@@ -18,11 +18,21 @@ Once finished in a 'functioning' state, it should be available via the standard 
 ### Run
 There are two basic ways how to work with the app - importing the app and making it part of your own code like that - or there is limited 'cli' capability (that doesn't provide all the requests, but it may help you find some basic information anyway.)
 #### Module
-To start using, simply import & initialize the ```AkamaiRequestWrapper``` class. Something like this should work nicely:
+It is recommended to use this app in virtual environment (especially for your development needs). Then install the app from PyPI.
+Following command installs the app from the TEST PYPI:
 ```
-...tbd
+python3 -m pip install --index-url https://test.pypi.org/simple/ akamai-shared-cloudlets
 ```
-Example above does not do very much, but it shows the basic usage. First, you import (other import methods would work as well of course), then you instantiate the ```AkamaiApiRequestsAbstractions``` class using the only defined constructor (you can provide the location of your edgerc file - if you don't, it defaults to ```~/.edgerc```). Last step is to use one of this numerous methods to send the request to API.
+
+Next step would be to import (example):
+```
+from akamai_shared_cloudlets import akamai_api_requests_abstractions as akamai_api
+```
+And finally you're ready to use the app:
+```
+print(akamai_api.list_cloudlets("~/.edgerc"))
+```
+Example above does not do very much, but it shows how to start using the app. 
 
 #### CLI
 Issuing the following command:

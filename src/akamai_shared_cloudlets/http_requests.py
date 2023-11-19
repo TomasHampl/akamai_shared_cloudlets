@@ -10,6 +10,7 @@ from requests import Request
 from . import akamai_project_constants
 from . import akamai_project_constants as constants
 from . import exceptions
+from . import shared as common
 
 
 def sign_request(edgerc_location: str = akamai_project_constants.DEFAULT_EDGERC_LOCATION):
@@ -108,8 +109,9 @@ def send_get_request(
     """
     if query_params is None:
         query_params = {}
-    base_url = get_base_url(edgerc_location)
-    session = sign_request(edgerc_location)
+    real_edgerc_location = common.get_home_folder(edgerc_location)
+    base_url = get_base_url(real_edgerc_location)
+    session = sign_request(real_edgerc_location)
     session.headers.update(query_params)
     final_url = urljoin(base_url, path)
     print("Sending request to Akamai...")
@@ -133,10 +135,11 @@ def send_post_request(
         "accept": constants.JSON_CONTENT_TYPE,
         "content-type": constants.JSON_CONTENT_TYPE
     }
-    base_url = get_base_url(edgerc_location)
+    real_edgerc_location = common.get_home_folder(edgerc_location)
+    base_url = get_base_url(real_edgerc_location)
     destination = urljoin(base_url, path)
     request = Request('POST', destination, data=json.dumps(post_body), headers=request_headers)
-    session = sign_request(edgerc_location)
+    session = sign_request(real_edgerc_location)
 
     prepared_request = session.prepare_request(request)
     return session.send(prepared_request)
@@ -154,10 +157,11 @@ def send_delete_request(path: str, edgerc_location: str = akamai_project_constan
     request_headers = {
         "accept": "application/problem+json"
     }
-    base_url = get_base_url(edgerc_location)
+    real_edgerc_location = common.get_home_folder(edgerc_location)
+    base_url = get_base_url(real_edgerc_location)
     destination = urljoin(base_url, path)
     request = Request('DELETE', destination, headers=request_headers)
-    session = sign_request(edgerc_location)
+    session = sign_request(real_edgerc_location)
     prepared_request = session.prepare_request(request)
     return session.send(prepared_request)
 
@@ -176,9 +180,10 @@ def send_put_request(path: str, body: dict, edgerc_location: str = akamai_projec
         "accept": constants.JSON_CONTENT_TYPE,
         "content-type": constants.JSON_CONTENT_TYPE
     }
-    base_url = get_base_url(edgerc_location)
+    real_edgerc_location = common.get_home_folder(edgerc_location)
+    base_url = get_base_url(real_edgerc_location)
     destination = urljoin(base_url, path)
     request = Request('PUT', destination, data=json.dumps(body), headers=request_headers)
-    session = sign_request(edgerc_location)
+    session = sign_request(real_edgerc_location)
     prepared_request = session.prepare_request(request)
     return session.send(prepared_request)

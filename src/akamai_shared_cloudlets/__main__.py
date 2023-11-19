@@ -26,7 +26,7 @@ def main():
 )
 def find_policy_by_id(policy_id, edgerc_location):
     """Provides the shared policy (including its details) identified by an ID. Returned data is in json format"""
-    edgerc_location = get_home_folder(edgerc_location)
+    edgerc_location = common.get_home_folder(edgerc_location)
     policy = api.get_policy_by_id(policy_id, edgerc_location)
     if policy is not None:
         print(policy)
@@ -48,7 +48,7 @@ def find_policy_by_id(policy_id, edgerc_location):
 )
 def find_policy_by_name(policy_name, edgerc_location):
     """ Returns the id of the policy identified by the provided name. Returns nothing, if policy not found in Akamai """
-    edgerc = get_home_folder(edgerc_location)
+    edgerc = common.get_home_folder(edgerc_location)
     policy = api.get_shared_policy_by_name(policy_name, edgerc)
     if len(policy) == 0:
         print(f"We found no policy matching the name {policy_name}. Please check the input for"
@@ -87,7 +87,7 @@ def find_policy_by_name(policy_name, edgerc_location):
 )
 def list_policies(edgerc_location, response_format):
     """ Returns all available policies"""
-    edgerc = get_home_folder(edgerc_location)
+    edgerc = common.get_home_folder(edgerc_location)
     policies = api.list_shared_policies(edgerc)
 
     if policies is not None:
@@ -111,17 +111,13 @@ def list_policies(edgerc_location, response_format):
 )
 def list_cloudlets(edgerc_location):
     """Returns the json with available cloudlet types"""
-    edgerc_location = get_home_folder(edgerc_location)
+    edgerc_location = common.get_home_folder(edgerc_location)
     cloudlets = api.list_cloudlets(edgerc_location)
     if cloudlets is not None:
         print(cloudlets)
     else:
         print(f"Could not find any cloudlet types. Perhaps your credentials file ({edgerc_location})"
               f" does not grant you enough permissions?")
-
-
-def get_home_folder(edgerc_location: str):
-    return os.path.expanduser(edgerc_location)
 
 
 main.add_command(find_policy_by_name)
