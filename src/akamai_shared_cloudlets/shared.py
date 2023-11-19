@@ -1,10 +1,10 @@
 import os
 
 
-def get_shared_policies_text(json_response: str):
+def get_shared_policies_text(json_response: dict):
     """
     Extracts the policy name and policy id from the response coming back from akamai and returns it as text
-    @param json_response: is a string representing the json string
+    @param json_response: is a dict representing the json string
     @return: python dictionary with policy name as key and policy id as value
     """
     response = {}
