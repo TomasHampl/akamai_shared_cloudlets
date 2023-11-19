@@ -126,4 +126,7 @@ main.add_command(list_cloudlets)
 main.add_command(list_policies)
 
 if __name__ == "__main__":
+    """
+    Main function 
+    """
     main()
