@@ -5,13 +5,12 @@ name: Python package
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "pipeline-test" ]
   pull_request:
     branches: [ "main" ]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -20,7 +19,6 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ["3.10"]
-
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
@@ -43,3 +41,25 @@ jobs:
         pytest
         coverage run -m pytest
         coverage xml
+
+  sonarcloud:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: sonar
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          # Disabling shallow clone is recommended for improving relevancy of reporting
+          fetch-depth: 0
+      - name: SonarCloud Scan
+        uses: sonarsource/sonarcloud-github-action@master
+        with:
+          projectBaseDir: .
+          args: >
+            -Dsonar.python.coverage.reportPaths=coverage.xml
+            -Dsonar.test.exclusions=tests/**
+        env:
+          GITHUB_TOKEN: ${{ secrets.VCS_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          sonar.projectKey: ${{ env.SONAR_KEY }}
+          sonar.organization: ${{ env.SONAR_ORG }}
