@@ -95,7 +95,7 @@ jobs:
 
     environment:
       name: testpypi
-      url: https://test.pypi.org/p/<package-name>
+      url: https://test.pypi.org/p/akamai-shared-cloudlets
 
     permissions:
       id-token: write  # IMPORTANT: mandatory for trusted publishing
