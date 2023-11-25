@@ -1,38 +1,27 @@
-[build-system]
-requires = ["setuptools", "setuptools-scm"]
-build-backend = "setuptools.build_meta"
-
-[project]
+[tool.poetry]
 name = "akamai-shared-cloudlets"
-version = "0.0.17"
-authors = [
-  { name="Tomas Hampl", email="tomas.hampl@gmail.com" },
-]
-description = "Library that implements Akamai API requests to control the cloudlet API version 3"
+version = "0.1.1"
+description = "Library that implements Akamai PI requests to control cloudlet API version 3"
+authors = ["TomasHampl <tomas.hampl@gmail.com>"]
 readme = "README.md"
-requires-python = ">=3.10"
 
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
-]
+[tool.poetry.dependencies]
+python = ">3.10"
+edgegrid-python = "^1.3.1"
+requests = "^2.31.0"
+click = "^8.1.7"
+pyOpenSSL = "^23.3.0"
+ndg-httpsclient = "^0.5.1"
 
-dependencies = [
-    "edgegrid-python",
-    "requests",
-    "click",
-    "pyOpenSSL",
-    "ndg-httpsclient"
-]
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.3"
+pytest-mock = "^3.12.0"
+requests-mock = "^1.11.0"
+coverage = "^7.3.2"
 
-[project.optional-dependencies]
-dev = [
-    "pytest",
-    "pytest-mock",
-    "coverage",
-    "requests-mock"
-]
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
 
 [project.urls]
 "Homepage" = "https://github.com/TomasHampl/akamai_shared_cloudlets.git"
