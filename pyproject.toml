@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "akamai-shared-cloudlets"
-version = "0.1.1"
+version = "0.1.2"
 description = "Library that implements Akamai PI requests to control cloudlet API version 3"
 authors = ["TomasHampl <tomas.hampl@gmail.com>"]
 readme = "README.md"
@@ -13,7 +13,8 @@ click = "^8.1.7"
 pyOpenSSL = "^23.3.0"
 ndg-httpsclient = "^0.5.1"
 
-[tool.poetry.group.dev.dependencies]
+
+[tool.poetry.group.test.dependencies]
 pytest = "^7.4.3"
 pytest-mock = "^3.12.0"
 requests-mock = "^1.11.0"
