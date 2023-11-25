@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "akamai-shared-cloudlets"
-version = "0.1.0"
+version = "0.1.1"
 description = "Library that implements Akamai PI requests to control cloudlet API version 3"
 authors = ["TomasHampl <tomas.hampl@gmail.com>"]
 readme = "README.md"
