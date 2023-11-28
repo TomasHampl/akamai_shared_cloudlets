@@ -43,7 +43,7 @@ jobs:
         coverage xml
 
   sonarcloud:
-    needs: build
+    needs: unit-tests
     runs-on: ubuntu-latest
     environment: sonar
     steps:
