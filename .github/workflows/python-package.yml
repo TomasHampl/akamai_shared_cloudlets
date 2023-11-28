@@ -63,7 +63,7 @@ jobs:
           coverage report
 
   sonarcloud:
-    needs: unit-tests
+    needs: test
     runs-on: ubuntu-latest
     environment: sonar
     steps:
