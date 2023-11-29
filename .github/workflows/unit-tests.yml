@@ -76,7 +76,7 @@ jobs:
         with:
           # Disabling shallow clone is recommended for improving relevancy of reporting
           fetch-depth: 0
-      - name: Download math result for job 2
+      - name: Download test coverage report
         uses: actions/download-artifact@v3
         with:
           name: coverage.xml
