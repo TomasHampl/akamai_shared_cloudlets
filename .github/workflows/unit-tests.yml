@@ -5,7 +5,7 @@ name: Python tests & Sonar
 
 on:
   push:
-    branches: [ "main", "pipeline-test" ]
+    branches: [ "main", "feature/poetry-backend" ]
   pull_request:
     branches: [ "main" ]
 
