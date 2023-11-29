@@ -59,6 +59,13 @@ jobs:
           coverage xml
           pwd
           find . -name "*coverage.xml*"
+      - name: Test coverage report upload
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage.xml
+          path: coverage.xml
+          retention-days: 1
+
 
   sonarcloud:
     needs: test
@@ -69,12 +76,16 @@ jobs:
         with:
           # Disabling shallow clone is recommended for improving relevancy of reporting
           fetch-depth: 0
+      - name: Download math result for job 2
+        uses: actions/download-artifact@v3
+        with:
+          name: coverage.xml
       - name: SonarCloud Scan
         uses: sonarsource/sonarcloud-github-action@master
         with:
           projectBaseDir: .
           args: >
-            -Dsonar.python.coverage.reportPaths=/home/runner/work/akamai_shared_cloudlets/akamai_shared_cloudlets/coverage.xml
+            -Dsonar.python.coverage.reportPaths=/coverage.xml
             -Dsonar.test.exclusions=tests/**
         env:
           GITHUB_TOKEN: ${{ secrets.VCS_TOKEN }}
