@@ -57,6 +57,7 @@ jobs:
           source .venv/bin/activate
           coverage run -m pytest
           coverage xml
+          pwd
           find . -name "*coverage.xml*"
 
   sonarcloud:
