@@ -74,7 +74,7 @@ jobs:
         with:
           projectBaseDir: .
           args: >
-            -Dsonar.python.coverage.reportPaths=coverage.xml
+            -Dsonar.python.coverage.reportPaths=${GITHUB_WORKSPACE}/coverage.xml
             -Dsonar.test.exclusions=tests/**
         env:
           GITHUB_TOKEN: ${{ secrets.VCS_TOKEN }}
