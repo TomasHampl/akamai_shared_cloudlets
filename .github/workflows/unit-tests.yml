@@ -74,7 +74,7 @@ jobs:
         with:
           projectBaseDir: .
           args: >
-            -Dsonar.python.coverage.reportPaths=${GITHUB_WORKSPACE}/coverage.xml
+            -Dsonar.python.coverage.reportPaths=/home/runner/work/akamai_shared_cloudlets/akamai_shared_cloudlets/coverage.xml
             -Dsonar.test.exclusions=tests/**
         env:
           GITHUB_TOKEN: ${{ secrets.VCS_TOKEN }}
