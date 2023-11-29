@@ -3,11 +3,7 @@
 
 name: Python tests & Sonar
 
-on:
-  push:
-    branches: [ "main", "pipeline-test" ]
-  pull_request:
-    branches: [ "main" ]
+on: push
 
 jobs:
   test:
@@ -61,6 +57,15 @@ jobs:
           source .venv/bin/activate
           coverage run -m pytest
           coverage xml
+          pwd
+          find . -name "*coverage.xml*"
+      - name: Test coverage report upload
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage.xml
+          path: coverage.xml
+          retention-days: 1
+
 
   sonarcloud:
     needs: test
@@ -71,12 +76,16 @@ jobs:
         with:
           # Disabling shallow clone is recommended for improving relevancy of reporting
           fetch-depth: 0
+      - name: Download test coverage report
+        uses: actions/download-artifact@v3
+        with:
+          name: coverage.xml
       - name: SonarCloud Scan
         uses: sonarsource/sonarcloud-github-action@master
         with:
           projectBaseDir: .
           args: >
-            -Dsonar.python.coverage.reportPaths=coverage.xml
+            -Dsonar.python.coverage.reportPaths=/coverage.xml
             -Dsonar.test.exclusions=tests/**
         env:
           GITHUB_TOKEN: ${{ secrets.VCS_TOKEN }}
