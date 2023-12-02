@@ -51,15 +51,15 @@ def find_policy_by_name(policy_name, edgerc_location):
     edgerc = common.get_home_folder(edgerc_location)
     policy = api.get_shared_policy_by_name(policy_name, edgerc)
     if len(policy) == 0:
-        print(f"We found no policy matching the name {policy_name}. Please check the input for"
+        print(f"ERROR: We found no policy matching the name {policy_name}. Please check the input for"
               f" any typing errors and try again")
     if len(policy) == 1:
         final_policy_name = list(policy)[0]
         policy_id = policy.get(final_policy_name)
-        print(f"We found the following policy matching the name {final_policy_name}: {policy_id} ")
+        print(f"SUCCESS: We found the following policy matching the name {final_policy_name}: {policy_id} ")
     else:
         number_of_policies = len(policy)
-        print(f"We could not find policy matching exactly {policy_name}. Instead we found {number_of_policies} "
+        print(f"WARNING: We could not find policy matching exactly {policy_name}. Instead we found {number_of_policies} "
               f"policies that contain the provided policy name '{policy_name}'")
         for policy, policy_identifier in policy.items():
             print(f"{policy}: {policy_identifier}")
@@ -98,7 +98,7 @@ def list_policies(edgerc_location, response_format):
         else:
             print(policies)
     else:
-        print("No policies found...perhaps your credentials do not grant you permissions to view any policies?")
+        print("ERROR: No policies found...perhaps your credentials do not grant you permissions to view any policies?")
 
 
 @click.command()
@@ -116,14 +116,37 @@ def list_cloudlets(edgerc_location):
     if cloudlets is not None:
         print(cloudlets)
     else:
-        print(f"Could not find any cloudlet types. Perhaps your credentials file ({edgerc_location})"
+        print(f"ERROR: Could not find any cloudlet types. Perhaps your credentials file ({edgerc_location})"
               f" does not grant you enough permissions?")
+
+
+@click.command()
+@click.argument(
+    "policy_id",
+    type=click.STRING,
+)
+@click.option(
+    "--edgerc-location",
+    "edgerc_location",
+    default="~/.edgerc",
+    help="Gives an option to provide your own location of the 'edgerc' file."
+)
+def find_latest_policy_version(edgerc_location, policy_id):
+    """Returns and prints the latest policy version"""
+    edgerc_location = common.get_home_folder(edgerc_location)
+    latest_version = api.get_latest_policy_version(policy_id, edgerc_location)
+    if latest_version is None:
+        print(f"ERROR: Policy with id {policy_id} could not be found. Are you sure it is correct? Or perhaps you don't have "
+              f"the necessary permissions (anymore?)...")
+    else:
+        print(f"SUCCESS: Policy with id {policy_id} has the latest version '{latest_version}'.")
 
 
 main.add_command(find_policy_by_name)
 main.add_command(find_policy_by_id)
 main.add_command(list_cloudlets)
 main.add_command(list_policies)
+main.add_command(find_latest_policy_version)
 
 if __name__ == "__main__":
     """
